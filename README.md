@@ -1,67 +1,69 @@
 # akira-packages
 
-This repository contains the independent source packages collection to build binary packages for the **Akira Linux** distribution, utilizing the `xbps-src` build system.
+Custom package repository for **Akira Linux** — a curated collection of hand-crafted `.xbps` source packages, delivering independent software configurations for your environment.
 
-## 🚀 Quick Start
+---
 
-### 1. Requirements
+## ⚙️ Automation & CI/CD (GitOps)
 
-Before building, ensure your system has the following core tools installed:
+This repository is designed to be powered by a fully automated GitOps pipeline to ensure stability and rapid software delivery:
 
-- GNU bash
-- git
-- curl
-- core POSIX utilities
+- **Auto-Updates:** A dedicated automation bot monitors official upstream APIs. When a new version is released, it automatically updates the package templates, verifies checksums, and opens a Pull Request.
+- **Continuous Integration (CI):** Every incoming template change is automatically verified on our build farm using GitHub Actions. We never merge packages that fail compilation.
+- **Continuous Deployment (CD):** Once a Pull Request is merged, packages are automatically compiled, cryptographically signed, and deployed to the production VPS repository.
 
-### 2. Initialize the Bootstrap Environment
+---
 
-To set up the initial build container using pre-existing binary packages, run:
+## 🚀 How to Use This Repository
 
-```bash
-./xbps-src binary-bootstrap
-```
+### Method 1: Install Pre-built Binaries (Recommended)
 
-### 3. Build a Package
-
-To build a package, specify the `pkg` target along with the package name:
+You can connect the official Akira Linux remote repository directly to your target machine to install pre-compiled packages:
 
 ```bash
-./xbps-src pkg <package_name>
+# Add the Akira Linux repository configuration
+echo "repository=https://akiralinux.org" | sudo tee -a /etc/xbps.d/akira.conf
+
+# Synchronize repositories and install any package
+sudo xbps-install -S
+sudo xbps-install <package-name>
 ```
 
-Once the compilation finishes, generated binary packages will be stored locally in `hostdir/binpkgs`.
+### Method 2: Build Manually via xbps-src
 
-### 4. Install Your Package
+If you prefer to compile packages locally on your MacBook or a build machine:
 
-You can install the compiled package directly using `xbps-install`:
-
-```bash
-xbps-install --repository hostdir/binpkgs <package_name>
-```
+1. **Initialize the Bootstrap Environment:**
+    ```bash
+    ./xbps-src binary-bootstrap
+    ```
+2. **Compile a Package:**
+    ```bash
+    ./xbps-src pkg <package_name>
+    ```
+3. **Install the Locally Generated Package:**
+    ```bash
+    xbps-install --repository hostdir/binpkgs <package_name>
+    ```
 
 ---
 
 ## 📂 Directory Hierarchy
 
-- `common/` - Shared build profiles, configurations, and core scripts.
-- `etc/` - Configuration files (e.g., `etc/conf` for local overrides).
-- `srcpkgs/` - The core directory where all package templates and build instructions reside.
-- `hostdir/` - Contains downloaded sources, caches (`ccache`), and final binary packages (`binpkgs`).
+- `common/` — Shared build profiles, cross-compilation architectures, and core components.
+- `etc/` — Local configuration overrides (e.g., `etc/conf`).
+- `srcpkgs/` — The core directory containing standalone package build templates.
+- `hostdir/` — Local directory for storage, cache compilation (`ccache`), and output binary packages.
 
 ---
 
-## 🛠 Configuration Overrides
+## 🌐 Community & Connections
 
-If you need to enable restricted packages or customize compilation flags (`CFLAGS`, `LDFLAGS`), avoid editing `etc/defaults.conf`. Instead, append your settings directly to `etc/conf`:
+- 💬 **Telegram Chat** — Join us for development, support, and contribution discussions.
+- 📢 **@akiralinux** — Official updates, distribution news, and repository announcements.
 
-```bash
-# Allow building restricted packages
-echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
-
-# Example: Custom optimization flags
-echo 'XBPS_CFLAGS="-O2 -pipe"' >> etc/conf
-```
+---
 
 ## 📜 License
 
-This project is distributed under the same licensing terms as the original ports collection. See the `COPYING` file for detailed information.
+This ports collection is distributed under the independent open-source terms specified in the `COPYING` file.
