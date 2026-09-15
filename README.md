@@ -31,7 +31,7 @@ sudo xbps-install <package-name>
 
 ### Method 2: Build Manually via xbps-src
 
-If you prefer to compile packages locally on your MacBook or a build machine:
+If you prefer to compile packages locally a build machine:
 
 1. **Initialize the Bootstrap Environment:**
     ```bash
