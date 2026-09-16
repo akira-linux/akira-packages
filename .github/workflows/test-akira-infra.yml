@@ -1,0 +1,124 @@
+name: Test Akira Infrastructure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    name: Test SSH and server paths
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          echo "$SSH_DEPLOY_KEY" > ~/.ssh/akira_deploy
+          sed -i 's/\\n/\n/g' ~/.ssh/akira_deploy
+          chmod 600 ~/.ssh/akira_deploy
+
+          echo "=== SSH key info ==="
+          wc -c ~/.ssh/akira_deploy
+          ssh-keygen -l -f ~/.ssh/akira_deploy
+
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          echo "=== SSH connection ==="
+          ssh -p "$SSH_PORT" \
+            -i ~/.ssh/akira_deploy \
+            -o ConnectTimeout=10 \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" "echo SSH_OK"
+
+      - name: Test server paths and permissions
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh -p "$SSH_PORT" \
+            -i ~/.ssh/akira_deploy \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" 'bash -s' <<'EOF'
+          set -e
+          echo "=== whoami ==="
+          whoami
+          id
+
+          echo "=== repo dirs ==="
+          ls -ld /var/www/akiralinux.org/repo
+          ls -ld /var/www/akiralinux.org/repo/current
+          ls -ld /var/www/akiralinux.org/repo/incoming
+
+          echo "=== writable current ==="
+          test -w /var/www/akiralinux.org/repo/current && echo WRITABLE || echo NOT_WRITABLE
+
+          echo "=== writable incoming ==="
+          test -w /var/www/akiralinux.org/repo/incoming && echo WRITABLE || echo NOT_WRITABLE
+
+          echo "=== current contents ==="
+          ls -la /var/www/akiralinux.org/repo/current | head -30
+
+          echo "=== remove-old script ==="
+          ls -l /home/builder/akira-remove-old.sh
+          /home/builder/akira-remove-old.sh || true
+
+          echo "=== xbps tools ==="
+          command -v xbps-rindex || echo "xbps-rindex not in PATH"
+          ls -l /usr/local/bin/xbps-rindex 2>/dev/null || true
+
+          echo "=== nginx ==="
+          systemctl status nginx --no-pager | head -5 || true
+          EOF
+
+      - name: Test HTTP repository
+        run: |
+          set -euo pipefail
+
+          echo "=== current dir ==="
+          curl -s -I https://akiralinux.org/repo/current/ | head -1 || true
+
+          echo "=== repodata ==="
+          curl -s -I https://akiralinux.org/repo/current/x86_64-repodata | head -1 || true
+
+          echo "=== repodata signature ==="
+          curl -s -I https://akiralinux.org/repo/current/x86_64-repodata.sig2 | head -1 || true
+
+  test-xbps-key:
+    name: Test XBPS private key
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Restore and validate XBPS key
+        env:
+          AKIRA_PRIVATE_KEY: ${{ secrets.AKIRA_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "$AKIRA_PRIVATE_KEY" > /tmp/akira.pem
+          chmod 600 /tmp/akira.pem
+
+          echo "=== key file ==="
+          wc -c /tmp/akira.pem
+          head -1 /tmp/akira.pem
+
+          echo "=== openssl check ==="
+          openssl rsa -in /tmp/akira.pem -check -noout
+
+          echo "=== public key ==="
+          openssl rsa -in /tmp/akira.pem -pubout -out /tmp/akira.pub
+          head -1 /tmp/akira.pub
+
+          rm -f /tmp/akira.pem /tmp/akira.pub
