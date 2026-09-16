@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>public-key</key>
+	<data>MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArbBlTG/vKifR/24AedW3VxNLDO9Iwn27Z93kCSv5W7h3RGgwy53I6DtBZVO1Z3wceI/x0HISQN/pi6UnAvtpd8c2tlxz7UnIOEikGmqCeJVlctAxVPwh6ZOYRKjNrQbEelDV7I+WRxLzAcalPFddp6XDK3Qu/pcej6kRZv+pTpLP3ZYZB8ABdLay/3rb3DdDL31bOB/Hx4vraMr7NiB6xJq+OiQBRnd8tGKJBT5Tdv26JeEogRCxi+EoXpBtKFjzHsOnujuX7mXgb91duSa88W6hCqVL7VcBg8ROnz52mcGjBuCvdvlWvfxaqbW3162OkZh5ImF6ek8GX0h5Eqnbu4gAhAMxcqBTMUGZHBc3BSyJ357B+qm0oeBU2jyP4K5320hc2e7IrMAYdg/C5DQ84WHI1aTsqPw30kCUt2zhKqkWnyb65gnavyahM9WBgRQ4Tcv4H/zTIX9vI3O+lMX4YtpiOnhMVmBrL+q0M3WnI08kFDksXg8HtyxBhtxjVzYj6FBzEkTQUq75mC/DsgDSHmJGi7nSa92j0vbg6MB4mqgYQEpTFdqakerpBcb5rLC6SWspNIJ0MjNMsbuR5fdh2qluTDh9w6yudGHonLveAFIPvq1sbHlZxd6qw3avYn14AYEinW1xIzkLrK8aF0djWaKKALIblEX9Q/ntVF8Nyk0CAwEAAQ==</data>
+	<key>public-key-size</key>
+	<integer>4096</integer>
+	<key>signature-by</key>
+	<string>Akira Linux</string>
+</dict>
+</plist>
