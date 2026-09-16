@@ -10,7 +10,8 @@ homepage="https://akiralinux.org"
 
 do_install() {
     vmkdir etc/xbps.d
-    vinstall "${FILESDIR}/akira-repo.conf" 644 etc/xbps.d   
+    vinstall "${FILESDIR}/akira-repo.conf" 644 etc/xbps.d
+     
     vmkdir var/db/xbps/keys
     vinstall "${FILESDIR}/akira-repo.pub" 644 var/db/xbps/keys
 }
