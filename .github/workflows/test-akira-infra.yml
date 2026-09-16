@@ -9,7 +9,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup SSH
+      - name: Debug secret lengths
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          echo "SSH_HOST length: ${#SSH_HOST}"
+          echo "SSH_PORT length: ${#SSH_PORT}"
+          echo "SSH_USER length: ${#SSH_USER}"
+          echo "SSH_USER first char: ${SSH_USER:0:1}"
+          echo "SSH_USER last char: ${SSH_USER: -1}"
+
+      - name: Setup SSH and test connection
         env:
           SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -27,13 +39,21 @@ jobs:
 
           echo "=== SSH key info ==="
           wc -c ~/.ssh/akira_deploy
+          head -1 ~/.ssh/akira_deploy
           ssh-keygen -l -f ~/.ssh/akira_deploy
 
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          if ! grep -q "BEGIN OPENSSH PRIVATE KEY" ~/.ssh/akira_deploy; then
+            echo "ERROR: SSH_DEPLOY_KEY does not contain an OpenSSH private key"
+            exit 1
+          fi
 
-          echo "=== SSH connection ==="
-          ssh -p "$SSH_PORT" \
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          echo "=== SSH connection (verbose) ==="
+          ssh -vvv \
+            -p "$SSH_PORT" \
             -i ~/.ssh/akira_deploy \
+            -o IdentitiesOnly=yes \
             -o ConnectTimeout=10 \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o StrictHostKeyChecking=yes \
@@ -49,6 +69,7 @@ jobs:
 
           ssh -p "$SSH_PORT" \
             -i ~/.ssh/akira_deploy \
+            -o IdentitiesOnly=yes \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o StrictHostKeyChecking=yes \
             "$SSH_USER@$SSH_HOST" 'bash -s' <<'EOF'
