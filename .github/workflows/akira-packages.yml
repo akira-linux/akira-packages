@@ -268,10 +268,27 @@ jobs:
           cp -f ./pkgs/*.xbps ./pkgs/*.sig2 ./repo-current/
           cd repo-current
           rm -f x86_64-repodata x86_64-repodata.sig2
-          xbps-rindex -a *.xbps
+
+          echo "=== Before index ==="
+          ls -la
+
+          for pkg in *.xbps; do
+            [ -f "$pkg" ] || continue
+            xbps-rindex -a "$pkg"
+          done
+
+          echo "=== After -a ==="
+          ls -la
+
           xbps-rindex -s \
             --privkey /tmp/akira.key \
-            --signedby "Akira Linux" .
+            --signedby "Akira Linux" \
+            x86_64-repodata
+
+          echo "=== After -s ==="
+          ls -la
+
+          test -f x86_64-repodata.sig2 || { echo "ERROR: x86_64-repodata.sig2 not created"; exit 1; }
 
       - name: Upload packages and repodata to VPS
         env:
