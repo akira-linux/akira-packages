@@ -1,0 +1,306 @@
+name: Build and Deploy Akira Packages
+
+on:
+  pull_request:
+    paths:
+      - "srcpkgs/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "srcpkgs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build packages
+    runs-on: ubuntu-latest
+
+    env:
+      XBPS_REPOSITORY: https://repo-de.voidlinux.org/current
+
+    container:
+      image: ghcr.io/void-linux/void-glibc-full
+      options: --privileged
+      volumes:
+        - /dev:/dev
+
+    outputs:
+      has_packages: ${{ steps.check.outputs.has_packages }}
+
+    steps:
+      - name: Prepare container
+        run: |
+          mkdir -p /etc/xbps.d
+          echo 'repository=https://repo-de.voidlinux.org/current' > /etc/xbps.d/00-repository-main.conf
+          echo 'repository=https://repo-de.voidlinux.org/current/nonfree' > /etc/xbps.d/10-repository-nonfree.conf
+          xbps-install -Syu xbps && xbps-install -yu
+          xbps-install -y sudo bash curl git xtools
+          useradd -G xbuilder -M builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          echo "builder:100000:65536" >> /etc/subuid
+          echo "builder:100000:65536" >> /etc/subgid
+          git config --global --add safe.directory /__w/akira-packages/akira-packages
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare masterdir
+        run: |
+          echo "XBPS_CHROOT_CMD=uchroot" >> etc/conf
+          git config --system --add safe.directory /__w/akira-packages/akira-packages
+          chown -R builder:builder .
+          sudo -Eu builder ./xbps-src binary-bootstrap
+          sudo -Eu builder ./xbps-src update-sys
+
+      - name: Find changed templates
+        id: changed
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Before: ${{ github.event.before }}"
+          echo "SHA: ${{ github.sha }}"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          echo "BASE=$BASE HEAD=$HEAD"
+          PKGS=""
+
+          if [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ -z "$BASE" ]; then
+            echo "First push — building all packages"
+            for d in srcpkgs/*/; do
+              name=$(basename "$d")
+              [ "$name" = "base-files" ] && continue
+              PKGS="$PKGS $name"
+            done
+          else
+            git fetch origin "$BASE" || git fetch --unshallow || true
+            git diff --name-only "$BASE" "$HEAD" || true
+
+            for f in $(git diff --name-only "$BASE" "$HEAD" 2>/dev/null); do
+              case "$f" in
+                srcpkgs/*)
+                  name=$(echo "$f" | cut -d/ -f2)
+                  [ "$name" = "base-files" ] && continue
+                  [ -z "$name" ] && continue
+                  case " $PKGS " in
+                    *" $name "*) ;;
+                    *) PKGS="$PKGS $name" ;;
+                  esac
+                  ;;
+              esac
+            done
+          fi
+
+          PKGS=$(echo "$PKGS" | xargs)
+          echo "Packages to build: '$PKGS'"
+          echo "packages=$PKGS" >> $GITHUB_OUTPUT
+
+      - name: Build packages
+        if: steps.changed.outputs.packages != ''
+        run: |
+          [ -d masterdir ] && chown -R builder:builder masterdir
+          [ -d hostdir ] && chown -R builder:builder hostdir
+          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
+
+          FAILED=0
+          for pkg in ${{ steps.changed.outputs.packages }}; do
+            echo "━━━ Building: $pkg ━━━"
+            sudo -Eu builder ./xbps-src pkg "$pkg" || {
+              echo "FAILED: $pkg"
+              FAILED=1
+            }
+          done
+          exit $FAILED
+
+      - name: Check that packages were built
+        id: check
+        run: |
+          find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null || echo "Nothing found"
+
+          if find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null | grep -q .; then
+            echo "has_packages=true" >> $GITHUB_OUTPUT
+            find hostdir/binpkgs/ -name "*.xbps"
+          else
+            echo "has_packages=false" >> $GITHUB_OUTPUT
+            echo "No .xbps files found"
+          fi
+
+      - name: Upload artifacts
+        if: steps.check.outputs.has_packages == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: akira-packages-${{ github.sha }}
+          path: hostdir/binpkgs/**/*.xbps
+          retention-days: 7
+
+  deploy:
+    name: Sign and deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build
+    if: >
+      needs.build.outputs.has_packages == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main'
+    environment: production
+
+    container:
+      image: ghcr.io/void-linux/void-glibc-full
+
+    steps:
+      - name: Prepare container
+        run: |
+          mkdir -p /etc/xbps.d
+          echo 'repository=https://repo-de.voidlinux.org/current' > /etc/xbps.d/00-repository-main.conf
+          xbps-install -Syu xbps && xbps-install -yu
+          xbps-install -y openssh rsync openssl
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: akira-packages-${{ github.sha }}
+          path: ./pkgs
+
+      - name: Flatten artifacts
+        run: |
+          find ./pkgs -mindepth 2 -name "*.xbps" -exec mv -t ./pkgs {} +
+          ls -la ./pkgs
+
+      - name: Restore XBPS signing key
+        env:
+          AKIRA_PRIVATE_KEY: ${{ secrets.AKIRA_PRIVATE_KEY }}
+        run: |
+          echo "$AKIRA_PRIVATE_KEY" > /tmp/akira.pem
+          chmod 600 /tmp/akira.pem
+          openssl rsa -in /tmp/akira.pem -out /tmp/akira.key
+          chmod 600 /tmp/akira.key
+          rm -f /tmp/akira.pem
+          openssl rsa -in /tmp/akira.key -check -noout
+
+      - name: Sign new packages
+        run: |
+          cd ./pkgs
+          for pkg in *.xbps; do
+            [ -f "$pkg" ] || continue
+            echo "Signing $pkg"
+            xbps-rindex --sign-pkg \
+              --privkey /tmp/akira.key \
+              --signedby "Akira Linux" \
+              "$pkg"
+          done
+
+      - name: Setup SSH
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_DEPLOY_KEY" > ~/.ssh/akira_deploy
+          sed -i 's/\\n/\n/g' ~/.ssh/akira_deploy
+          chmod 600 ~/.ssh/akira_deploy
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Fetch current repo
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p repo-current
+          rsync -avz \
+            -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/" \
+            ./repo-current/
+
+      - name: Remove old versions in temp repo
+        run: |
+          cd repo-current
+          shopt -s nullglob
+          : > /tmp/old-files.txt
+
+          for newpkg in ../pkgs/*.xbps; do
+            newbase=$(basename "$newpkg")
+            pkgname=$(xbps-query -p "$newpkg" | awk -F': ' '/^pkgname: /{print $2; exit}')
+            [ -n "$pkgname" ] || { echo "Cannot determine pkgname for $newbase" >&2; exit 1; }
+
+            for old in ${pkgname}-*.xbps; do
+              [ -e "$old" ] || continue
+              [ "$old" = "$newbase" ] && continue
+              echo "$old" >> /tmp/old-files.txt
+              rm -f "$old" "$old.sig2"
+            done
+
+            case "$pkgname" in
+              *-dbg) ;;
+              *)
+                for old in ${pkgname}-dbg-*.xbps; do
+                  [ -e "$old" ] || continue
+                  echo "$old" >> /tmp/old-files.txt
+                  rm -f "$old" "$old.sig2"
+                done
+                ;;
+            esac
+          done
+
+          echo "Old files to delete on VPS:"
+          cat /tmp/old-files.txt
+
+      - name: Add new packages and rebuild repodata
+        run: |
+          cp -f ./pkgs/*.xbps ./pkgs/*.sig2 ./repo-current/
+          cd repo-current
+          rm -f x86_64-repodata x86_64-repodata.sig2
+          xbps-rindex -a *.xbps
+          xbps-rindex -s \
+            --privkey /tmp/akira.key \
+            --signedby "Akira Linux" .
+
+      - name: Upload packages and repodata to VPS
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync -avz \
+            -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            ./pkgs/*.xbps ./pkgs/*.sig2 \
+            "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/"
+
+          rsync -avz \
+            -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            ./repo-current/x86_64-repodata ./repo-current/x86_64-repodata.sig2 \
+            "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/"
+
+      - name: Cleanup old versions on VPS
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          if [ -s /tmp/old-files.txt ]; then
+            OLD_FILES=$(cat /tmp/old-files.txt | tr '\n' ' ')
+            ssh -p "$SSH_PORT" -i "$HOME/.ssh/akira_deploy" \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" "/home/builder/akira-remove-old.sh $OLD_FILES"
+          else
+            echo "No old files to remove"
+          fi
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f /tmp/akira.key /tmp/old-files.txt
+          rm -f "$HOME/.ssh/akira_deploy" "$HOME/.ssh/known_hosts"

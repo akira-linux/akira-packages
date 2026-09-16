@@ -1,0 +1,24 @@
+# Template file for 'akira-repo'
+pkgname=akira-repo
+version=1.3
+revision=1
+archs="x86_64"
+short_desc="Akira Linux repository configuration"
+maintainer="Akira Linux team <https://akiralinux.org>"
+license="Public Domain"
+homepage="https://akiralinux.org"
+
+do_install() {
+    vmkdir etc/xbps.d
+    vinstall "${FILESDIR}/akira-repo.conf" 644 etc/xbps.d
+    vmkdir var/db/xbps/keys
+    vinstall "${FILESDIR}/akira-repo.pub" 644 var/db/xbps/keys
+}
+
+post_install() {
+    echo "========================================"
+    echo "AKIRA LINUX REPOSITORY CONFIGURED!"
+    echo "========================================"
+    echo "Config: /etc/xbps.d/akira-repo.conf"
+    echo "========================================"
+}
