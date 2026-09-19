@@ -23,6 +23,7 @@ You can connect the official Akira Linux remote repository directly to your targ
 ```bash
 # Add the Akira Linux repository configuration
 echo "repository=https://repo.akiralinux.org/current" | sudo tee /etc/xbps.d/akira.conf
+# When prompted to import the public key, answer: Y
 
 # Synchronize repositories and install any package
 sudo xbps-install -S
