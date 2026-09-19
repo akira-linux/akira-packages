@@ -14,7 +14,7 @@ makedepends="wayland-devel wayland-protocols libxkbcommon-devel pixman-devel
  libical-devel pam-devel stb libjxl-devel libsndfile-devel"
 depends="brightnessctl playerctl"
 short_desc="Sleek, native Wayland desktop shell written in C++"
-maintainer="cybarchitect <cybarchitect@gmail.com>"
+maintainer="Akira Linux team <https://akiralinux.org>"
 license="MIT"
 homepage="https://github.com/noctalia-dev/noctalia"
 distfiles="https://github.com/noctalia-dev/noctalia/archive/refs/tags/v${_tag}.tar.gz"
