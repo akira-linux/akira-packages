@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=AniLiberty
+Comment=Desktop client for AniLibria
+Exec=env VK_DRIVER_FILES=/dev/null VK_ICD_FILENAMES=/dev/null aniliberty %U
+Icon=aniliberty
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;
+StartupNotify=true
+StartupWMClass=aniliberty
