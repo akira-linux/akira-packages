@@ -1,0 +1,30 @@
+#!/bin/bash
+if [[ "$USER" == "root" ]]; then
+    echo "Don't run Albion Online as root!"
+    exit 1
+fi
+
+USER_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/albion-online-launcher"
+PKG_LAUNCHER="/opt/albion-online-launcher/launcher"
+USER_LAUNCHER="${USER_DATA_DIR}/launcher"
+
+PKG_VERSION=""
+[ -f "${PKG_LAUNCHER}/version.txt" ] && \
+    PKG_VERSION=$(cat "${PKG_LAUNCHER}/version.txt")
+
+USER_VERSION=""
+[ -f "${USER_LAUNCHER}/version.txt" ] && \
+    USER_VERSION=$(cat "${USER_LAUNCHER}/version.txt")
+
+if [ ! -d "${USER_LAUNCHER}" ] || [ "${PKG_VERSION}" != "${USER_VERSION}" ]; then
+    echo "Updating launcher: ${USER_VERSION:-none} → ${PKG_VERSION}"
+    rm -rf "${USER_LAUNCHER}"
+    mkdir -p "${USER_DATA_DIR}"
+    cp -r "${PKG_LAUNCHER}" "${USER_DATA_DIR}/"
+fi
+
+cd "${USER_DATA_DIR}"
+
+export LD_LIBRARY_PATH="${USER_LAUNCHER}:${LD_LIBRARY_PATH:-}"
+
+exec "${USER_LAUNCHER}/Albion-Online" --no-sandbox -loglevel 0 "$@"

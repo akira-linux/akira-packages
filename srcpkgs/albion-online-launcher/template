@@ -1,0 +1,45 @@
+# Template file for 'albion-online-launcher'
+pkgname=albion-online-launcher
+version=1.0.34.619
+revision=1
+archs="x86_64"
+wrksrc="albion-online-launcher-${version}"
+hostmakedepends="p7zip"
+short_desc="Official launcher client for Albion Online MMORPG"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Proprietary"
+homepage="https://albiononline.com/"
+distfiles="https://live.albiononline.com/autoupdate/launcher-linux-setup-1.0.34.619"
+checksum=4bfbc3aca267dbcbf9c1e2c91d60aac54e7fa334830859844dd6ed9cd943496d
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio libGL"
+triggers="gtk-icon-cache update-desktopdb"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    7z x "${XBPS_SRCDISTDIR}/${pkgname}-${version}/albion-online-setup" -o"${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/albion-online-launcher
+    vcopy data/launcher opt/albion-online-launcher
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall "${FILESDIR}/albion-online-launcher.png" 644 \
+        usr/share/icons/hicolor/256x256/apps albion-online-launcher.png
+
+    vmkdir usr/share/pixmaps
+    vinstall data/AlbionOnline.xpm 644 usr/share/pixmaps AlbionOnline.xpm
+
+    vmkdir usr/share/applications
+    vinstall "${FILESDIR}/albion-online-launcher.desktop" 644 usr/share/applications
+
+    vmkdir usr/bin
+    vinstall "${FILESDIR}/albion-online" 755 usr/bin
+
+    vmkdir usr/share/licenses/${pkgname}
+    vinstall data/eula.txt 644 usr/share/licenses/${pkgname}/LICENSE
+}

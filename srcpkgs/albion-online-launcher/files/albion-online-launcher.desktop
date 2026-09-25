@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Albion Launcher
+Comment=The first true cross-platform Sandbox MMO -- game launcher
+Exec=env QT_QPA_PLATFORM=xcb albion-online
+Icon=albion-online-launcher
+Categories=Game;
+Terminal=false
+StartupWMClass=Albion-Online
