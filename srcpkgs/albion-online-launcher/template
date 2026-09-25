@@ -20,7 +20,8 @@ triggers="gtk-icon-cache update-desktopdb"
 
 do_extract() {
     mkdir -p "${wrksrc}"
-    7z x "${XBPS_SRCDISTDIR}/${pkgname}-${version}/albion-online-setup" -o"${wrksrc}"
+    local distfile="${XBPS_SRCDISTDIR}/${pkgname}-${version}/$(basename "${distfiles}")"
+    7z x "${distfile}" -o"${wrksrc}"
 }
 
 do_install() {
