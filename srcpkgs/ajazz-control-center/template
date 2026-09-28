@@ -1,0 +1,47 @@
+# Template file for 'ajazz-control-center'
+pkgname=ajazz-control-center
+version=2.0.0
+revision=1
+archs="x86_64"
+wrksrc="ajazz-control-center-${version}"
+hostmakedepends="libarchive"
+short_desc="Open, cross-platform control center for AJAZZ & Mirabox HID devices"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/Aiacos/ajazz-control-center"
+distfiles="https://github.com/Aiacos/ajazz-control-center/releases/download/nightly/ajazz-control-center-2.0.0-Linux.deb"
+checksum=14a964a852f7f96c8244e15f1d7680628da761f50095981d35271542bb2d09ac
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="eudev-libudev libxcb libxkbcommon libwebkit2gtk41 hidapi qt6-webengine"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/ajazz-control-center-${version}-Linux.deb" -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm -f "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    [ -f usr/bin/ajazz-control-center ] && \
+        vbin usr/bin/ajazz-control-center
+
+    if [ -d usr/share/icons ]; then
+        vmkdir usr/share/icons
+        vcopy usr/share/icons/* usr/share/icons/
+    fi
+
+    if [ -d usr/lib/udev/rules.d ]; then
+        vmkdir usr/lib/udev/rules.d
+        vcopy usr/lib/udev/rules.d/* usr/lib/udev/rules.d/
+    fi
+
+    vmkdir usr/share/applications
+    vinstall "${FILESDIR}/ajazz-control-center.desktop" 644 usr/share/applications
+
+    if [ -f usr/share/doc/ajazz-control-center/copyright ]; then
+        vlicense usr/share/doc/ajazz-control-center/copyright
+    fi
+}

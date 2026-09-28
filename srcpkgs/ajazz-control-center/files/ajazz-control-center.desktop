@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AJAZZ Control Center
+Comment=Control center for AJAZZ & Mirabox HID devices
+Exec=ajazz-control-center
+Icon=ajazz-control-center
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+StartupWMClass=ajazz-control-center
