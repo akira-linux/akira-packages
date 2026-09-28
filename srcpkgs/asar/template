@@ -1,0 +1,24 @@
+# Template file for 'asar'
+pkgname=asar
+version=4.3.1
+revision=1
+hostmakedepends="nodejs"
+depends="nodejs"
+short_desc="Creating Electron app packages"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/electron/asar"
+distfiles="https://github.com/electron/asar/archive/refs/tags/v${version}.tar.gz"
+checksum="4cb0294126bb12ea91276e7f35fb9be980759b41db0a7c8f70b1a56664dc00d1"
+
+
+do_build() {
+    export ELECTRON_SKIP_BINARY_DOWNLOAD=1
+    npm install --force
+    npm run build
+}
+
+do_install() {
+    npm install --install-links -g --prefix ${DESTDIR}/usr .
+    vlicense ${DESTDIR}/usr/lib/node_modules/@electron/asar/LICENSE.md
+}
