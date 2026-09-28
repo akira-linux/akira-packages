@@ -1,0 +1,26 @@
+#!/bin/sh
+ACTION="$1"
+PKGNAME="$2"
+VERSION="$3"
+UPDATE="$4"
+CONF_FILE="$5"
+ARCH="$6"
+
+TRIGGERSDIR="./usr/libexec/xbps-triggers"
+
+case "${ACTION}" in
+pre)
+    ;;
+post)
+    [ -x "${TRIGGERSDIR}/gtk-icon-cache" ] && \
+        ${TRIGGERSDIR}/gtk-icon-cache run post-install "${PKGNAME}" "${VERSION}" "${UPDATE}" "${CONF_FILE}"
+    [ -x "${TRIGGERSDIR}/update-desktopdb" ] && \
+        ${TRIGGERSDIR}/update-desktopdb run post-install "${PKGNAME}" "${VERSION}" "${UPDATE}" "${CONF_FILE}"
+
+    if [ -d /etc/sv/amneziavpn ]; then
+        ln -sf /etc/sv/amneziavpn /var/service/ 2>/dev/null || true
+    fi
+    ;;
+esac
+
+exit 0

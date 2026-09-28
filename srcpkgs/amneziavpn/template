@@ -1,0 +1,155 @@
+# Template file for 'amneziavpn'
+pkgname=amneziavpn
+version=5.0.3.0
+revision=1
+archs="x86_64"
+wrksrc="${pkgname}-${version}"
+hostmakedepends="p7zip python3"
+short_desc="Amnezia VPN Client"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-only"
+homepage="https://github.com/amnezia-vpn/amnezia-client"
+distfiles="https://github.com/amnezia-vpn/amnezia-client/releases/download/${version}/AmneziaVPN_${version}_linux_x64.run"
+checksum=0335f2643f58c4d7494be4c6d47582574fa7e5a463450e9a47b0c5c2eda797c2
+nopie=yes
+noverifyrdeps=yes
+disable_shlib_provides=yes
+install_script="${FILESDIR}/INSTALL"
+remove_script="${FILESDIR}/REMOVE"
+
+depends="qt6-base qt6-declarative qt6-svg qt6-multimedia qt6-remoteobjects qt6-widgets
+ libxcb xcb-util-cursor xcb-util-wm xcb-util-keysyms libglvnd libxkbcommon-x11
+ libsecret polkit wireguard-tools openvpn iptables nftables"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    cp "${XBPS_SRCDISTDIR}/${pkgname}-${version}/AmneziaVPN_${version}_linux_x64.run" \
+        "${wrksrc}/installer.run"
+}
+
+post_extract() {
+    local installer="${wrksrc}/installer.run"
+    [ -f "${installer}" ] || msg_error "amneziavpn: installer not found"
+
+    python3 - "${installer}" "${wrksrc}" << 'PYEOF'
+import sys, os, subprocess
+
+installer, wrksrc = sys.argv[1], sys.argv[2]
+sig = b'\x37\x7a\xbc\xaf\x27\x1c'
+
+with open(installer, 'rb') as f:
+    data = f.read()
+
+offsets = []
+idx = 0
+while True:
+    pos = data.find(sig, idx)
+    if pos < 0:
+        break
+    offsets.append(pos)
+    idx = pos + 1
+
+print(f"Found {len(offsets)} 7z signatures")
+
+def try_extract(offset, out_dir, label=""):
+    size = len(data) - offset
+    tmp_7z = os.path.join(wrksrc, f".tmp_{offset}.7z")
+    with open(tmp_7z, 'wb') as f:
+        f.write(data[offset:])
+
+    r = subprocess.run(["7z", "l", tmp_7z], capture_output=True, text=True)
+    if r.returncode != 0:
+        os.remove(tmp_7z)
+        return False
+
+    os.makedirs(out_dir, exist_ok=True)
+    r = subprocess.run(
+        ["7z", "x", tmp_7z, f"-o{out_dir}", "-y"],
+        capture_output=True, text=True
+    )
+    os.remove(tmp_7z)
+    if r.returncode in (0, 1):
+        print(f"  OK {label}")
+        return True
+    print(f"  FAIL {label}: {r.stderr[-150:]}")
+    return False
+
+for i, offset in enumerate(offsets):
+    size = len(data) - offset
+    if i == 0:
+        print(f"[0] skip (nested archive, {size/1024/1024:.1f} MB)")
+        continue
+    if size < 100 * 1024:
+        print(f"[{i}] skip ({size/1024:.0f} KB)")
+        continue
+    out_dir = os.path.join(wrksrc, f"part_{i}")
+    try_extract(offset, out_dir, f"part {i} ({size/1024/1024:.1f} MB)")
+
+last_offset = offsets[-1]
+try_extract(last_offset, os.path.join(wrksrc, "meta"), "meta")
+
+os.remove(installer)
+print("=> Done")
+PYEOF
+
+    echo "=> Tree:"
+    find "${wrksrc}" -maxdepth 3 -type d | sort | head -40
+}
+
+do_install() {
+    local bin_dir="${wrksrc}/part_1/bin"
+    local lib_dir="${wrksrc}/part_2/lib"
+    local plugins_dir="${wrksrc}/part_3/plugins"
+    local qml_dir="${wrksrc}/part_4/qml"
+    local translations_dir="${wrksrc}/part_5/translations"
+    local meta_dir="${wrksrc}/meta"
+
+    [ -d "${bin_dir}" ] || msg_error "amneziavpn: bin dir not found"
+
+    vmkdir opt/AmneziaVPN/client/bin
+    vmkdir opt/AmneziaVPN/client/lib
+    vmkdir opt/AmneziaVPN/client/plugins
+    vmkdir opt/AmneziaVPN/client/qml
+    vmkdir opt/AmneziaVPN/client/translations
+
+    vcopy "${bin_dir}"/* opt/AmneziaVPN/client/bin/
+    [ -d "${lib_dir}" ] && vcopy "${lib_dir}"/* opt/AmneziaVPN/client/lib/
+    [ -d "${plugins_dir}" ] && vcopy "${plugins_dir}"/* opt/AmneziaVPN/client/plugins/
+    [ -d "${qml_dir}" ] && vcopy "${qml_dir}"/* opt/AmneziaVPN/client/qml/
+    [ -d "${translations_dir}" ] && vcopy "${translations_dir}"/* opt/AmneziaVPN/client/translations/
+
+    vmkdir opt/AmneziaVPN/service/bin
+    for f in AmneziaVPN-service tun2socks amneziawg-go update-resolv-conf.sh libcrypto.so.3 libssl.so.3; do
+        if [ -f "${bin_dir}/${f}" ]; then
+            vcopy "${bin_dir}/${f}" opt/AmneziaVPN/service/bin/
+        fi
+    done
+
+    vinstall "${FILESDIR}/AmneziaVPN.sh" 755 opt/AmneziaVPN/client
+    vinstall "${FILESDIR}/AmneziaVPN-service.sh" 755 opt/AmneziaVPN/service
+
+    chmod +x ${DESTDIR}/opt/AmneziaVPN/client/bin/* 2>/dev/null || true
+    chmod +x ${DESTDIR}/opt/AmneziaVPN/service/bin/* 2>/dev/null || true
+    chmod +x ${DESTDIR}/opt/AmneziaVPN/service/AmneziaVPN-service.sh
+    chmod +x ${DESTDIR}/opt/AmneziaVPN/client/AmneziaVPN.sh
+
+    vmkdir usr/bin
+    ln -sf /opt/AmneziaVPN/client/AmneziaVPN.sh ${DESTDIR}/usr/bin/AmneziaVPN
+
+    if [ -f "${meta_dir}/AmneziaVPN.desktop" ]; then
+        sed -i 's#/usr/share/pixmaps/AmneziaVPN.png#AmneziaVPN#g' \
+            "${meta_dir}/AmneziaVPN.desktop"
+        vmkdir usr/share/applications
+        vinstall "${meta_dir}/AmneziaVPN.desktop" 644 usr/share/applications
+    fi
+
+    if [ -f "${meta_dir}/AmneziaVPN.png" ]; then
+        vmkdir usr/share/icons/hicolor/512x512/apps
+        vinstall "${meta_dir}/AmneziaVPN.png" 644 usr/share/icons/hicolor/512x512/apps
+        vmkdir usr/share/pixmaps
+        vinstall "${meta_dir}/AmneziaVPN.png" 644 usr/share/pixmaps
+    fi
+
+    vmkdir etc/sv/amneziavpn
+    vinstall "${FILESDIR}/amneziavpn/run" 755 etc/sv/amneziavpn
+}

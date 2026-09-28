@@ -1,0 +1,24 @@
+#!/bin/sh
+ACTION="$1"
+PKGNAME="$2"
+VERSION="$3"
+UPDATE="$4"
+CONF_FILE="$5"
+ARCH="$6"
+
+TRIGGERSDIR="./usr/libexec/xbps-triggers"
+
+case "${ACTION}" in
+pre)
+    sv stop amneziavpn 2>/dev/null || true
+    rm -f /var/service/amneziavpn
+    ;;
+post)
+    [ -x "${TRIGGERSDIR}/gtk-icon-cache" ] && \
+        ${TRIGGERSDIR}/gtk-icon-cache run post-remove "${PKGNAME}" "${VERSION}" "${UPDATE}" "${CONF_FILE}"
+    [ -x "${TRIGGERSDIR}/update-desktopdb" ] && \
+        ${TRIGGERSDIR}/update-desktopdb run post-remove "${PKGNAME}" "${VERSION}" "${UPDATE}" "${CONF_FILE}"
+    ;;
+esac
+
+exit 0
