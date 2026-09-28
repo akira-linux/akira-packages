@@ -1,0 +1,16 @@
+# Template file for 'bibata-original-ice'
+pkgname=bibata-original-ice
+version=2.0.7
+revision=1
+archs="x86_64"
+short_desc="Bibata Original Ice cursor theme"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-only"
+homepage="https://github.com/ful1e5/Bibata_Cursor"
+distfiles="https://github.com/ful1e5/Bibata_Cursor/releases/download/v${version}/Bibata-Original-Ice.tar.xz"
+checksum=c96ec7515179cadcefa30f7aefd449830e4e0ab878ee13afbc96aa5906692916
+
+do_install() {
+    vmkdir usr/share/icons/Bibata-Original-Ice
+    vcopy . usr/share/icons/Bibata-Original-Ice/
+}
