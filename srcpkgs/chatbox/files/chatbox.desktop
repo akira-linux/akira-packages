@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Chatbox
+Comment=Desktop client for AI models
+Exec=chatbox --no-sandbox %U
+Terminal=false
+Type=Application
+Icon=chatbox
+Categories=Network;Chat;

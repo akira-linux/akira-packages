@@ -1,0 +1,64 @@
+# Template file for 'chatbox'
+pkgname=chatbox
+version=1.23.5
+revision=1
+archs="x86_64"
+wrksrc="chatbox-${version}"
+hostmakedepends="glib"
+short_desc="Chatbox: Desktop client for AI chat models"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://chatboxai.app/"
+distfiles="https://download.chatboxai.app/releases/Chatbox-${version}-x86_64.AppImage"
+checksum=54d880f496d139bde44f24ea2a72938a16a337bb9d649c734b04efe71a068770
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio"
+
+do_extract() {
+    local appimage="${XBPS_SRCDISTDIR}/${pkgname}-${version}/Chatbox-${version}-x86_64.AppImage"
+    chmod +x "${appimage}"
+    cd "${XBPS_BUILDDIR}"
+    "${appimage}" --appimage-extract
+    rm -rf "${wrksrc}"
+    mv squashfs-root "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/chatbox
+    vcopy "*" opt/chatbox
+    vcopy ".[!.]*" opt/chatbox 2>/dev/null || true
+
+    find ${DESTDIR}/opt/chatbox -xtype l -delete
+    find ${DESTDIR}/opt/chatbox -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/chatbox -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    ln -sf /opt/chatbox/xyz.chatboxapp.app ${DESTDIR}/usr/bin/chatbox
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vmkdir usr/share/pixmaps
+    local icon_found=""
+    for icon in opt/chatbox/xyz.chatboxapp.app.png \
+                opt/chatbox/usr/share/icons/hicolor/0x0/apps/chatbox.png \
+                opt/chatbox/resources/assets/icon.png; do
+        if [ -f "$icon" ]; then
+            vinstall "$icon" 644 usr/share/icons/hicolor/256x256/apps chatbox.png
+            vinstall "$icon" 644 usr/share/pixmaps chatbox.png
+            icon_found=1
+            break
+        fi
+    done
+    if [ -z "$icon_found" ]; then
+        touch ${DESTDIR}/usr/share/icons/hicolor/256x256/apps/chatbox.png
+        touch ${DESTDIR}/usr/share/pixmaps/chatbox.png
+    fi
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/chatbox.desktop 644 usr/share/applications
+    vlicense LICENSE.electron.txt
+}
