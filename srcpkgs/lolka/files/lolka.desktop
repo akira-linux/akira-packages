@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Lolka
+Comment=Russian alternative to Discord for real-time communication
+Exec=lolka
+Icon=lolka
+Terminal=false
+Categories=Network;InstantMessaging;Chat;
+StartupWMClass=Lolka

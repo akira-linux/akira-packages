@@ -1,0 +1,45 @@
+# Template file for 'lolka'
+pkgname=lolka
+version=1.0.100
+revision=1
+archs="x86_64"
+wrksrc="lolka-${version}"
+short_desc="Lolka — Russian alternative to Discord for real-time communication"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Proprietary"
+homepage="https://lolka.app"
+distfiles="https://storage.yandexcloud.net/lolka-electron/releases/Lolka_${version}_amd64.deb"
+checksum=15c25d3c45314d859db3753764d1b0e6d91d2528c410ef070f502483bdfc9b2c
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+depends="gtk+3 nss libXScrnSaver libXtst libcups alsa-lib libpulseaudio libsecret libgbm eudev-libudev"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/Lolka_${version}_amd64.deb" \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm -f "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vmkdir opt/Lolka
+    vcopy opt/Lolka/* opt/Lolka/
+
+    vmkdir usr/bin
+    vinstall "${FILESDIR}/lolka.sh" 755 usr/bin lolka
+
+    vmkdir usr/share/applications
+    vinstall "${FILESDIR}/lolka.desktop" 644 usr/share/applications
+
+    if [ -f "usr/share/icons/hicolor/512x512/apps/lolka.png" ]; then
+        vmkdir usr/share/icons/hicolor/512x512/apps
+        vinstall usr/share/icons/hicolor/512x512/apps/lolka.png 644 \
+            usr/share/icons/hicolor/512x512/apps
+    fi
+
+    if [ -f "usr/share/doc/lolka/copyright" ]; then
+        vlicense usr/share/doc/lolka/copyright
+    fi
+}
