@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Firefox Nightly
+Comment=Fast, Private & Safe Web Browser (Nightly version)
+Exec=firefox-nightly %U
+Icon=firefox-nightly
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+StartupNotify=true

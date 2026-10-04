@@ -1,0 +1,54 @@
+# Template file for 'firefox-nightly'
+pkgname=firefox-nightly
+version=159.0a1
+revision=1
+archs="x86_64"
+wrksrc="firefox"
+hostmakedepends="libarchive"
+short_desc="Fast, Private & Safe Web Browser (Nightly version)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MPL-2.0"
+homepage="https://www.mozilla.org/firefox/channel/desktop/#nightly"
+distfiles="https://download.mozilla.org/?product=firefox-nightly-latest&os=linux64&lang=en-US"
+checksum=fcfcc572bc6f5ae94d5a57c909700de259bd4e1a75ee4d99b7c674d63eae4871
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3 ffmpeg dbus-glib nss sqlite hicolor-icon-theme"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    local archive
+    archive=$(find ${XBPS_SRCDISTDIR}/${pkgname}-${version}/ -maxdepth 1 -type f -print -quit)
+    if [ -z "$archive" ]; then
+        echo "ERROR: no archive found in sources" >&2
+        return 1
+    fi
+    bsdtar -xf "$archive" --strip-components 1 -C "${wrksrc}"
+}
+do_install() {
+    vmkdir opt/firefox-nightly
+    vcopy "*" opt/firefox-nightly
+    vcopy ".[!.]*" opt/firefox-nightly 2>/dev/null || true
+
+    find ${DESTDIR}/opt/firefox-nightly -xtype l -delete
+    find ${DESTDIR}/opt/firefox-nightly -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/firefox-nightly -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    ln -sf /opt/firefox-nightly/firefox ${DESTDIR}/usr/bin/firefox-nightly
+
+    vmkdir usr/share/icons/hicolor/128x128/apps
+    vinstall browser/chrome/icons/default/default128.png 644 usr/share/icons/hicolor/128x128/apps firefox-nightly.png
+    vmkdir usr/share/pixmaps
+    vinstall browser/chrome/icons/default/default128.png 644 usr/share/pixmaps firefox-nightly.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/firefox-nightly.desktop 644 usr/share/applications
+
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
