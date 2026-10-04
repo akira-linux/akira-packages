@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Floorp
+Comment=Floorp Browser - a Firefox-based browser with excellent privacy
+Exec=floorp %U
+Icon=floorp
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+StartupNotify=true
