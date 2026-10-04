@@ -1,0 +1,46 @@
+# Template file for 'cursor'
+pkgname=cursor
+version=3.23.12
+revision=1
+archs="x86_64"
+wrksrc="cursor-${version}"
+distfiles="https://downloads.cursor.com/production/2d29876d567da1607532b23bbf2cd5ddbca496fe/linux/x64/deb/amd64/deb/cursor_3.23.12_amd64.deb>cursor-3.23.12-amd64.deb"
+checksum=4b38d23926c72f2080e2ba108593e38f3688312464d70adc9088db63a53c0346
+homepage="https://www.cursor.com"
+license="custom:Cursor-EULA"
+short_desc="First AI code editor based on VSCode"
+maintainer="Vostok Linux <packaging@vostoklinux.org>"
+depends="alsa-lib libsecret libgbm libdrm libcups eudev-libudev
+ hicolor-icon-theme xdg-utils"
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+do_extract() {
+	mkdir -p ${wrksrc}
+	bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/cursor-${version}-amd64.deb \
+		-C ${wrksrc} --include='data.tar*'
+	bsdtar -xf ${wrksrc}/data.tar* -C ${wrksrc}
+	rm ${wrksrc}/data.tar*
+}
+
+do_install() {
+	vmkdir usr/lib/cursor
+	vcopy usr/share/cursor/* usr/lib/cursor
+
+	vmkdir usr/bin
+	ln -sf /usr/lib/cursor/cursor ${DESTDIR}/usr/bin/cursor
+
+	vinstall ${FILESDIR}/cursor.desktop 644 usr/share/applications
+	vinstall ${FILESDIR}/cursor.png 644 usr/share/icons/hicolor/256x256/apps
+	vinstall ${FILESDIR}/cursor.png 644 usr/share/pixmaps
+
+	chmod -R o-w ${DESTDIR}/usr/lib/cursor
+	chmod 755 ${DESTDIR}/usr/lib/cursor/cursor
+	chmod 755 ${DESTDIR}/usr/lib/cursor/chrome_crashpad_handler
+	if [ -f ${DESTDIR}/usr/lib/cursor/chrome-sandbox ]; then
+		chmod 4755 ${DESTDIR}/usr/lib/cursor/chrome-sandbox
+	fi
+
+	vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
