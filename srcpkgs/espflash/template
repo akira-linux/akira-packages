@@ -1,0 +1,40 @@
+# Template file for 'espflash'
+pkgname=espflash
+version=4.6.0
+revision=1
+archs="x86_64"
+wrksrc="espflash-${version}"
+hostmakedepends="unzip"
+short_desc="Serial flasher utility for Espressif SoCs and modules"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-2.0-or-later"
+homepage="https://github.com/esp-rs/espflash"
+distfiles="https://github.com/esp-rs/espflash/releases/download/v${version}/espflash-x86_64-unknown-linux-gnu.zip"
+checksum=c4fcfa32ddc3155608f003a230e6f3c184eff9641ec9cfa8eb54f1b515d403e7
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    unzip -q ${XBPS_SRCDISTDIR}/${pkgname}-${version}/espflash-x86_64-unknown-linux-gnu.zip -d "${wrksrc}"
+    if [ "$(ls -A "${wrksrc}" | wc -l)" -eq 1 ] && [ -d "${wrksrc}/$(ls -A "${wrksrc}")" ]; then
+        local subdir=$(ls -A "${wrksrc}")
+        mv "${wrksrc}/${subdir}"/* "${wrksrc}/"
+        rmdir "${wrksrc}/${subdir}"
+    fi
+}
+
+do_install() {
+    vbin espflash
+    if [ -f LICENSE ]; then
+        vlicense LICENSE
+    elif [ -f LICENSE.md ]; then
+        vlicense LICENSE.md
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}
