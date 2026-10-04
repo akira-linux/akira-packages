@@ -1,0 +1,49 @@
+# Template file for 'github-desktop'
+pkgname=github-desktop
+version=3.4.13
+revision=1
+archs="x86_64"
+wrksrc="github-desktop-${version}"
+hostmakedepends="libarchive"
+short_desc="GitHub Desktop - simple collaboration from your desktop"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://desktop.github.com/"
+distfiles="https://github.com/shiftkey/desktop/releases/download/release-${version}-linux1/GitHubDesktop-linux-amd64-${version}-linux1.deb"
+checksum=8b5577761c7900cac2896b5fbc1d88f5aea48b6ce771437262be2a66ab38d987
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/GitHubDesktop-linux-amd64-${version}-linux1.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+
+    vcopy "opt/*" opt 2>/dev/null || true
+
+    rm -f ${DESTDIR}/usr/share/applications/github-desktop.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/github-desktop.desktop 644 usr/share/applications
+
+    if [ ! -f usr/share/icons/hicolor/256x256/apps/github-desktop.png ]; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/github-desktop.png 644 usr/share/icons/hicolor/256x256/apps github-desktop.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/github-desktop.png 644 usr/share/pixmaps github-desktop.png
+    fi
+
+    if [ -f "usr/share/doc/github-desktop/copyright" ]; then
+        vlicense usr/share/doc/github-desktop/copyright
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}
