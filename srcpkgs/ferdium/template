@@ -1,0 +1,51 @@
+# Template file for 'ferdium'
+pkgname=ferdium
+version=7.2.3
+revision=1
+archs="x86_64"
+wrksrc="ferdium-${version}"
+hostmakedepends="libarchive"
+short_desc="All-in-one messaging app"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="Apache-2.0"
+homepage="https://ferdium.org/"
+distfiles="https://github.com/ferdium/ferdium-app/releases/download/v${version}/Ferdium-linux-${version}-amd64.deb"
+checksum=f8a3f5d3b6bc4e6af6a91f291fe807b97a84aa20b91313c65e860ea95d54adba
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/Ferdium-linux-${version}-amd64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vmkdir opt/ferdium
+    vcopy "opt/Ferdium/*" opt/ferdium
+
+    find ${DESTDIR}/opt/ferdium -xtype l -delete
+    find ${DESTDIR}/opt/ferdium -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/ferdium -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    ln -sf /opt/ferdium/ferdium ${DESTDIR}/usr/bin/ferdium
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/ferdium.png 644 usr/share/icons/hicolor/256x256/apps ferdium.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/ferdium.png 644 usr/share/pixmaps ferdium.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/ferdium.desktop 644 usr/share/applications
+
+    vlicense opt/Ferdium/LICENSE.electron.txt
+}
