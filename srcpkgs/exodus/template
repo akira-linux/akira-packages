@@ -1,0 +1,48 @@
+# Template file for 'exodus-bin'
+pkgname=exodus
+version=26.8.27
+revision=1
+archs="x86_64"
+wrksrc="Exodus-linux-x64"
+short_desc="All-in-one app to secure, manage and exchange blockchain assets"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Exodus"
+homepage="https://exodus.com"
+distfiles="https://downloads.exodus.com/releases/exodus-linux-x64-${version}.zip"
+checksum=bd2fe57e039d609ced1f26fc0c8829b9b972da9ae1ce90d783b4ef1040a3bac6
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio libXScrnSaver"
+
+do_extract() {
+    mkdir -p ${wrksrc}
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/exodus-linux-x64-${version}.zip --strip-components 1 -C ${wrksrc}
+}
+
+do_install() {
+    vmkdir opt/exodus
+    vcopy "*" opt/exodus
+    vcopy ".[!.]*" opt/exodus 2>/dev/null || true
+
+    find ${DESTDIR}/opt/exodus -xtype l -delete
+    find ${DESTDIR}/opt/exodus -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/exodus -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    ln -sf /opt/exodus/Exodus ${DESTDIR}/usr/bin/exodus
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/exodus.png 644 usr/share/icons/hicolor/256x256/apps exodus.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/exodus.png 644 usr/share/pixmaps exodus.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/exodus.desktop 644 usr/share/applications
+
+    vlicense LICENSE
+}
