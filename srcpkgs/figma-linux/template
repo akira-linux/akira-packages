@@ -1,0 +1,46 @@
+# Template file for 'figma-linux'
+pkgname=figma-linux
+version=0.11.5
+revision=7
+archs="x86_64"
+wrksrc="figma-linux"
+hostmakedepends="gtk+3"
+depends="elogind hicolor-icon-theme xdg-utils
+ alsa-lib libsecret libgbm libdrm libcups"
+short_desc="Unofficial Figma desktop client for Linux"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-2.0-only"
+homepage="https://github.com/Figma-Linux/figma-linux"
+distfiles="https://github.com/Figma-Linux/figma-linux/releases/download/v${version}/figma-linux_${version}_linux_amd64.zip>figma-linux-${version}-amd64.zip"
+checksum=e667df1d31cc9ff12f31d092289394a29296818a212dfe3fad0e98af7a0aadcd
+nostrip=yes
+noshlibs=yes
+
+do_extract() {
+	mkdir -p ${wrksrc}
+	bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/figma-linux-${version}-amd64.zip \
+		-C ${wrksrc}
+}
+
+do_install() {
+	vmkdir opt/figma-linux
+	vcopy "*" opt/figma-linux
+
+	vmkdir opt/figma-linux/lib
+	ln -sf /usr/lib/libelogind.so.0 ${DESTDIR}/opt/figma-linux/lib/libsystemd.so.0
+
+	vmkdir usr/bin
+	ln -sf /opt/figma-linux/figma-linux ${DESTDIR}/usr/bin/figma-linux
+
+	vinstall ${FILESDIR}/figma-linux.desktop 644 usr/share/applications
+	vinstall ${FILESDIR}/figma-linux.png 644 usr/share/icons/hicolor/256x256/apps
+	vinstall ${FILESDIR}/figma-linux.png 644 usr/share/pixmaps
+
+	chmod -R o-w ${DESTDIR}/opt/figma-linux
+	chmod 755 ${DESTDIR}/opt/figma-linux/figma-linux
+	if [ -f ${DESTDIR}/opt/figma-linux/chrome-sandbox ]; then
+		chmod 4755 ${DESTDIR}/opt/figma-linux/chrome-sandbox
+	fi
+
+	vlicense ${wrksrc}/LICENSE.electron.txt
+}
