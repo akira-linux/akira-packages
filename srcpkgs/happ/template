@@ -15,10 +15,6 @@ nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
 disable_shlib_provides=yes
-
-# Happ bundles Qt6 and its dependencies in /opt/happ/lib;
-# only base X11/GL and openssl are pulled from the system.
-# systemctl-runit-shim maps the privileged start request onto runit.
 depends="libX11 libxcb libglvnd mesa-dri openssl polkit systemctl-runit-shim"
 
 do_extract() {
@@ -33,8 +29,6 @@ do_install() {
 	vmkdir opt
 	vcopy opt/happ opt
 
-	# Redirect Happ's two pkexec service-setup calls to a dispatcher that starts
-	# runit once. The dispatcher forwards unrelated pkexec calls unchanged.
 	local happ_binary="${DESTDIR}/opt/happ/bin/Happ"
 	local pkexec_refs
 	pkexec_refs=$(LC_ALL=C grep -ao '/usr/bin/pkexec' "$happ_binary" | wc -l)
@@ -46,7 +40,6 @@ do_install() {
 	vinstall "${FILESDIR}/privd" 755 opt/happ
 	vinstall "${FILESDIR}/privd-root" 755 opt/happ
 
-	# Prevent Happ from connecting to an unprivileged happd instance.
 	mv "${DESTDIR}/opt/happ/bin/happd" \
 		"${DESTDIR}/opt/happ/bin/happd.bin"
 	vinstall "${FILESDIR}/happd-wrapper" 755 opt/happ/bin happd
@@ -58,12 +51,6 @@ do_install() {
 
 	vmkdir usr/bin
 	ln -sf /opt/happ/bin/Happ ${DESTDIR}/usr/bin/happ
-
-	# Keep happd stopped at boot and start it through polkit only for TUN mode.
 	vsv happd
-
-	# Register happd.service with systemctl-runit-shim.
 	vinstall "${FILESDIR}/systemctl-shim.d/happd" 644 etc/systemctl-shim.d
-
-	# The absent systemd marker makes Happ request authentication for TUN.
 }
