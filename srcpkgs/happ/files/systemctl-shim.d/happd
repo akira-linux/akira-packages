@@ -1,0 +1,4 @@
+# Map happd.service requested by privd-root onto the runit service.
+service=happd
+source=/etc/sv/happd
+procname=happd

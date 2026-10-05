@@ -1,0 +1,69 @@
+# Template file for 'happ'
+pkgname=happ
+version=4.3.0
+revision=1
+archs="x86_64"
+wrksrc="happ-${version}"
+hostmakedepends="tar xz zstd"
+short_desc="User-friendly GUI proxy client for xray-core (TUN/VPN, byedpi, subscriptions)"
+maintainer="Artem Kabanov <oloreas@gmail.com>"
+license="custom:Freeware"
+homepage="https://happ.su"
+distfiles="https://github.com/Happ-proxy/happ-desktop/releases/download/${version}/Happ.linux.x64.deb"
+checksum=41c86c0caf18190bce58a7f603fd466c9e3fbfef2b85f837635a0453401affba
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+disable_shlib_provides=yes
+
+# Happ bundles Qt6 and its dependencies in /opt/happ/lib;
+# only base X11/GL and openssl are pulled from the system.
+# systemctl-runit-shim maps the privileged start request onto runit.
+depends="libX11 libxcb libglvnd mesa-dri openssl polkit systemctl-runit-shim"
+
+do_extract() {
+	mkdir -p "${wrksrc}"
+	bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/Happ.linux.x64.deb" \
+		-C "${wrksrc}" --include='data.tar*'
+	bsdtar -xf "${wrksrc}"/data.tar.zst -C "${wrksrc}"
+	rm "${wrksrc}"/data.tar.zst
+}
+
+do_install() {
+	vmkdir opt
+	vcopy opt/happ opt
+
+	# Redirect Happ's two pkexec service-setup calls to a dispatcher that starts
+	# runit once. The dispatcher forwards unrelated pkexec calls unchanged.
+	local happ_binary="${DESTDIR}/opt/happ/bin/Happ"
+	local pkexec_refs
+	pkexec_refs=$(LC_ALL=C grep -ao '/usr/bin/pkexec' "$happ_binary" | wc -l)
+	if [ "$pkexec_refs" -ne 1 ]; then
+		echo "Expected one embedded pkexec path, found $pkexec_refs" >&2
+		return 1
+	fi
+	LC_ALL=C sed -i 's|/usr/bin/pkexec|/opt/happ/privd|' "$happ_binary"
+	vinstall "${FILESDIR}/privd" 755 opt/happ
+	vinstall "${FILESDIR}/privd-root" 755 opt/happ
+
+	# Prevent Happ from connecting to an unprivileged happd instance.
+	mv "${DESTDIR}/opt/happ/bin/happd" \
+		"${DESTDIR}/opt/happ/bin/happd.bin"
+	vinstall "${FILESDIR}/happd-wrapper" 755 opt/happ/bin happd
+
+	vmkdir usr/share
+	vcopy usr/share/applications usr/share
+	vcopy usr/share/icons usr/share
+	vcopy usr/share/mime usr/share
+
+	vmkdir usr/bin
+	ln -sf /opt/happ/bin/Happ ${DESTDIR}/usr/bin/happ
+
+	# Keep happd stopped at boot and start it through polkit only for TUN mode.
+	vsv happd
+
+	# Register happd.service with systemctl-runit-shim.
+	vinstall "${FILESDIR}/systemctl-shim.d/happd" 644 etc/systemctl-shim.d
+
+	# The absent systemd marker makes Happ request authentication for TUN.
+}
