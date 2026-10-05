@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Handy
+Comment=Voice-activated assistant
+Exec=handy --no-sandbox %U
+Terminal=false
+Type=Application
+Icon=handy
+Categories=Utility;

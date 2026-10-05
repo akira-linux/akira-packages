@@ -1,0 +1,33 @@
+# Template file for 'handy'
+pkgname=handy
+version=0.9.8
+revision=1
+archs="x86_64"
+wrksrc="handy-${version}"
+short_desc="Voice-activated assistant"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/cjpais/Handy"
+distfiles="https://github.com/cjpais/Handy/releases/download/v${version}/Handy_${version}_amd64.deb"
+checksum=4efe1fdcc2b68e95612e866810ccb23e06bbdf004a4e857de0862b0c6927caa8
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret openblas libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk-layer-shell libwebkit2gtk41"
+
+do_extract() {
+    mkdir -p ${wrksrc}
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/Handy_${version}_amd64.deb \
+        -C ${wrksrc} --include='data.tar*'
+    bsdtar -xf ${wrksrc}/data.tar* -C ${wrksrc}
+    rm ${wrksrc}/data.tar*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/handy.desktop 644 usr/share/applications
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
