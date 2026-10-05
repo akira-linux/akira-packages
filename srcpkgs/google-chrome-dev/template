@@ -1,0 +1,51 @@
+# Template file for 'google-chrome-dev'
+pkgname=google-chrome-dev
+version=157.0.8081.0
+revision=1
+archs="x86_64"
+wrksrc="google-chrome-dev-${version}"
+short_desc="The popular web browser by Google (Dev Channel)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:chrome"
+homepage="https://www.google.com/chrome"
+distfiles="https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-unstable/google-chrome-unstable_${version}-1_amd64.deb"
+checksum=4bc066268a69bedf6fcb705f8aa4888b6b21fe6d0982a221b6a8429f1ba2d432
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio
+         gtk+3 libXScrnSaver libXtst nss liberation-fonts-ttf xdg-utils"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/google-chrome-unstable_${version}-1_amd64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vcopy "opt" opt
+    vcopy "usr/*" usr
+
+    rm -f ${DESTDIR}/usr/share/applications/google-chrome-unstable.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/google-chrome-dev.desktop 644 usr/share/applications
+
+    rm -f ${DESTDIR}/etc/cron.daily/google-chrome-unstable
+
+    vmkdir usr/bin
+    ln -sf /opt/google/chrome-unstable/google-chrome-unstable ${DESTDIR}/usr/bin/google-chrome-dev
+
+    for size in 16 24 32 48 64 128 256; do
+        if [ -f "opt/google/chrome-unstable/product_logo_${size}_dev.png" ]; then
+            vmkdir "usr/share/icons/hicolor/${size}x${size}/apps"
+            vinstall "opt/google/chrome-unstable/product_logo_${size}_dev.png" 644 \
+                "usr/share/icons/hicolor/${size}x${size}/apps" google-chrome-dev.png
+        fi
+    done
+    vmkdir usr/share/pixmaps
+    vinstall "opt/google/chrome-unstable/product_logo_256_dev.png" 644 usr/share/pixmaps google-chrome-dev.png
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
