@@ -1,0 +1,25 @@
+# Template file for 'tlottie'
+pkgname=tlottie
+version=1.0.6
+revision=1
+archs="x86_64"
+wrksrc="tlottie-${version}"
+hostmakedepends="cargo rust"
+short_desc="Rust library for drawing Lottie animations (C API)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/dkaraush/tlottie"
+distfiles="https://github.com/dkaraush/tlottie/archive/refs/tags/v${version}.tar.gz"
+checksum=a85dd1a8f62ca85248af380d5eee6f32e84b29c45134615b23355207ccb90359
+
+do_build() {
+    cargo rustc --release --features c-api --lib --crate-type staticlib
+}
+
+do_install() {
+    vmkdir usr/lib
+    vinstall target/release/libtlottie.a 644 usr/lib
+
+    vmkdir usr/include
+    vinstall include/tlottie.h 644 usr/include
+}
