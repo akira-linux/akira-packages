@@ -1,0 +1,51 @@
+# Template file for 'google-chrome'
+pkgname=google-chrome
+version=154.0.8037.97
+revision=1
+archs="x86_64"
+wrksrc="google-chrome-${version}"
+short_desc="The popular web browser by Google (Stable Channel)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:chrome"
+homepage="https://www.google.com/chrome"
+distfiles="https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${version}-1_amd64.deb"
+checksum=a4edbe95e9b01db6c9b97d7a1323121eda18362b5620df06abac1b59bee80053
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3 libXScrnSaver libXtst nss liberation-fonts-ttf xdg-utils"
+
+do_extract() {
+    mkdir -p ${wrksrc}
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/google-chrome-stable_${version}-1_amd64.deb \
+        -C ${wrksrc} --include='data.tar*'
+    bsdtar -xf ${wrksrc}/data.tar* -C ${wrksrc}
+    rm ${wrksrc}/data.tar*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+    vcopy opt opt
+
+    rm -f ${DESTDIR}/usr/share/applications/google-chrome.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/google-chrome.desktop 644 usr/share/applications
+
+    rm -f ${DESTDIR}/etc/cron.daily/google-chrome
+
+    vmkdir usr/bin
+    ln -sf /opt/google/chrome/google-chrome ${DESTDIR}/usr/bin/google-chrome
+
+    for size in 16 24 32 48 64 128 256; do
+        if [ -f opt/google/chrome/product_logo_${size}.png ]; then
+            vmkdir usr/share/icons/hicolor/${size}x${size}/apps
+            vinstall opt/google/chrome/product_logo_${size}.png 644 \
+                usr/share/icons/hicolor/${size}x${size}/apps google-chrome.png
+        fi
+    done
+    
+    vmkdir usr/share/pixmaps
+    vinstall opt/google/chrome/product_logo_256.png 644 usr/share/pixmaps google-chrome.png
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
