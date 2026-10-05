@@ -1,0 +1,9 @@
+NAME="Akira Linux"
+ID="akira"
+PRETTY_NAME="Akira Linux"
+HOME_URL="https://akiralinux.org/"
+DOCUMENTATION_URL="https://docs.akiralinux.org/"
+LOGO="akira-logo"
+ANSI_COLOR="0;38;2;71;128;97"
+
+DISTRIB_ID="akira"
