@@ -1,0 +1,31 @@
+# Template file for 'hck'
+pkgname=hck
+version=0.11.6
+revision=1
+archs="x86_64"
+wrksrc="hck-${version}"
+hostmakedepends="libarchive"
+short_desc="A sharp cut(1) clone"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/sstadick/hck"
+distfiles="https://github.com/sstadick/hck/releases/download/v${version}/hck-linux-amd64"
+checksum=633ca367e1577f738b9676dae297f9b403484dd77e53ed6533a3ba09d6bff15f
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+
+    cp ${XBPS_SRCDISTDIR}/${pkgname}-${version}/hck-linux-amd64 "${wrksrc}/hck"
+    chmod +x "${wrksrc}/hck"
+}
+
+do_install() {
+    vbin hck
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
