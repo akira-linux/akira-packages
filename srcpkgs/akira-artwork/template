@@ -1,0 +1,21 @@
+# Template file for 'akira-artwork'
+pkgname=akira-artwork
+version=20221013
+revision=1
+short_desc="Akira Linux artwork"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Public Domain"
+homepage="https://akiralinux.org"
+replaces="void-artwork"
+
+do_install() {
+	vinstall ${FILESDIR}/splash.png 644 usr/share/akira-artwork
+	vinstall ${FILESDIR}/akira-logo.png 644 usr/share/akira-artwork
+	vinstall ${FILESDIR}/akira-logo.svg 644 usr/share/akira-artwork
+	for size in 16 22 32 48 64 128 256 512; do
+		vinstall ${FILESDIR}/icons/akira-logo-${size}.png 644 usr/share/icons/hicolor/${size}x${size}/apps akira-logo.png
+		vinstall ${FILESDIR}/icons/akira-logo-notext-${size}.png 644 usr/share/icons/hicolor/${size}x${size}/apps akira-logo-notext.png
+	done
+	vinstall ${FILESDIR}/icons/akira-logo.svg 644 usr/share/icons/hicolor/scalable/apps
+	vinstall ${FILESDIR}/icons/akira-logo-notext.svg 644 usr/share/icons/hicolor/scalable/apps
+}
