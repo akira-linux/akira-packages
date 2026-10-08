@@ -1,0 +1,9 @@
+# Template file for 'removed-packages'
+pkgname=removed-packages
+version=0.1
+revision=1
+metapackage=yes
+short_desc="Akira Linux package transitions"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="Public Domain"
+homepage="https://akiralinux.org"
