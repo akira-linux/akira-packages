@@ -10,11 +10,6 @@ on:
     paths:
       - "srcpkgs/**"
   workflow_dispatch:
-    inputs:
-      only_pkg:
-        description: 'Build only this one package (empty = nothing)'
-        required: false
-        default: ''
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,8 +19,6 @@ jobs:
   build:
     name: Build packages
     runs-on: ubuntu-latest
-    outputs:
-      has_packages: ${{ steps.check.outputs.has_packages }}
 
     env:
       XBPS_REPOSITORY: https://repo-de.voidlinux.org/current
@@ -35,6 +28,9 @@ jobs:
       options: --privileged
       volumes:
         - /dev:/dev
+
+    outputs:
+      has_packages: ${{ steps.check.outputs.has_packages }}
 
     steps:
       - name: Prepare container
@@ -61,24 +57,14 @@ jobs:
           git config --system --add safe.directory /__w/akira-packages/akira-packages
           chown -R builder:builder .
           sudo -Eu builder ./xbps-src binary-bootstrap
-          sudo -Eu builder ./xbps-src update-sys
+          sudo -Eu builder ./xbps-src update-sys++
 
       - name: Find changed templates
         id: changed
         run: |
           echo "Event: ${{ github.event_name }}"
-          PKGS=""
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PKG="${{ github.event.inputs.only_pkg }}"
-            if [ -z "$PKG" ]; then
-              echo "workflow_dispatch without only_pkg — nothing to build"
-              echo "packages=" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-            echo "packages=$PKG" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          echo "Before: ${{ github.event.before }}"
+          echo "SHA: ${{ github.sha }}"
 
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE="${{ github.event.pull_request.base.sha }}"
@@ -89,28 +75,33 @@ jobs:
           fi
 
           echo "BASE=$BASE HEAD=$HEAD"
+          PKGS=""
 
           if [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ -z "$BASE" ]; then
-            echo "First push / force push — nothing to build automatically"
-            echo "packages=" >> $GITHUB_OUTPUT
-            exit 0
+            echo "First push — building all packages"
+            for d in srcpkgs/*/; do
+              name=$(basename "$d")
+              [ "$name" = "base-files" ] && continue
+              PKGS="$PKGS $name"
+            done
+          else
+            git fetch origin "$BASE" || git fetch --unshallow || true
+            git diff --name-only "$BASE" "$HEAD" || true
+
+            for f in $(git diff --name-only "$BASE" "$HEAD" 2>/dev/null); do
+              case "$f" in
+                srcpkgs/*)
+                  name=$(echo "$f" | cut -d/ -f2)
+                  [ "$name" = "base-files" ] && continue
+                  [ -z "$name" ] && continue
+                  case " $PKGS " in
+                    *" $name "*) ;;
+                    *) PKGS="$PKGS $name" ;;
+                  esac
+                  ;;
+              esac
+            done
           fi
-
-          git fetch origin "$BASE" || git fetch --unshallow || true
-
-          for f in $(git diff --name-only "$BASE" "$HEAD" 2>/dev/null); do
-            case "$f" in
-              srcpkgs/*)
-                name=$(echo "$f" | cut -d/ -f2)
-                [ "$name" = "base-files" ] && continue
-                [ -z "$name" ] && continue
-                case " $PKGS " in
-                  *" $name "*) ;;
-                  *) PKGS="$PKGS $name" ;;
-                esac
-                ;;
-            esac
-          done
 
           PKGS=$(echo "$PKGS" | xargs)
           echo "Packages to build: '$PKGS'"
@@ -123,34 +114,21 @@ jobs:
           [ -d hostdir ] && chown -R builder:builder hostdir
           echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
 
-          STASH=/tmp/stash
-          mkdir -p "$STASH"
-          mkdir -p hostdir/binpkgs/main
-
           FAILED=0
           for pkg in ${{ steps.changed.outputs.packages }}; do
             echo "━━━ Building: $pkg ━━━"
-
-            # Собрать пакет
-            if ! sudo -Eu builder ./xbps-src pkg "$pkg"; then
+            sudo -Eu builder ./xbps-src pkg "$pkg" || {
               echo "FAILED: $pkg"
               FAILED=1
-            fi
-
-            # Убрать свежие .xbps из hostdir, чтобы следующий update-sys их не увидел
-            find hostdir/binpkgs/main -maxdepth 1 -name '*.xbps*' -exec mv -t "$STASH/" {} + 2>/dev/null || true
-            rm -f hostdir/binpkgs/main/x86_64-repodata* 2>/dev/null || true
+            }
           done
-
-          # Вернуть .xbps для upload
-          find "$STASH" -maxdepth 1 -name '*.xbps*' -exec mv -t hostdir/binpkgs/main/ {} + 2>/dev/null || true
-
           exit $FAILED
 
       - name: Check that packages were built
         id: check
         run: |
           find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null || echo "Nothing found"
+
           if find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null | grep -q .; then
             echo "has_packages=true" >> $GITHUB_OUTPUT
             find hostdir/binpkgs/ -name "*.xbps"
@@ -287,8 +265,7 @@ jobs:
 
       - name: Add new packages and rebuild repodata
         run: |
-          cp -f ./pkgs/*.xbps ./repo-current/ 2>/dev/null || true
-          cp -f ./pkgs/*.sig2 ./repo-current/ 2>/dev/null || true
+          cp -f ./pkgs/*.xbps ./pkgs/*.sig2 ./repo-current/
 
           cd repo-current
           for pkg in *.xbps; do
