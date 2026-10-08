@@ -59,19 +59,6 @@ jobs:
           sudo -Eu builder ./xbps-src binary-bootstrap
           sudo -Eu builder ./xbps-src update-sys
 
-      - name: Pin packages with SONAME bumps
-        run: |
-          mkdir -p /etc/xbps.d
-          cat > /etc/xbps.d/00-pin.conf <<'EOF'
-          ignorepkg=libunistring
-          ignorepkg=libunistring-devel
-          ignorepkg=libffi
-          ignorepkg=libffi-devel
-          EOF
-          cat /etc/xbps.d/00-pin.conf
-
-
-
       - name: Find changed templates
         id: changed
         run: |
