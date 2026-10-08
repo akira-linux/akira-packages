@@ -44,7 +44,6 @@ if [[ ${latest_version} == "${current_version}" ]]; then
 fi
 
 echo "libunistring: ${current_version} → ${latest_version}"
-
 DOWNLOAD_URL="${SITE}libunistring-${latest_version}.tar.xz"
 echo "URL: ${DOWNLOAD_URL}"
 
