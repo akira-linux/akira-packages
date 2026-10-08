@@ -117,7 +117,7 @@ jobs:
           FAILED=0
           for pkg in ${{ steps.changed.outputs.packages }}; do
             echo "━━━ Building: $pkg ━━━"
-            sudo -Eu builder ./xbps-src pkg "$pkg" || {
+            sudo -Eu builder ./xbps-src -N pkg "$pkg" || {
               echo "FAILED: $pkg"
               FAILED=1
             }
