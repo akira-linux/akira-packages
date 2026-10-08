@@ -21,107 +21,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    name: Determine packages
+  build:
+    name: Build packages
     runs-on: ubuntu-latest
     outputs:
-      has_packages: ${{ steps.changed.outputs.has_packages }}
-      matrix: ${{ steps.changed.outputs.matrix }}
-    container:
-      image: ghcr.io/void-linux/void-glibc-full
-    steps:
-      - name: Prepare container
-        run: |
-          mkdir -p /etc/xbps.d
-          echo 'repository=https://repo-de.voidlinux.org/current' > /etc/xbps.d/00-repository-main.conf
-          xbps-install -Syu xbps && xbps-install -yu
-          xbps-install -y bash curl git jq
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Find changed templates
-        id: changed
-        run: |
-          echo "Event: ${{ github.event_name }}"
-          echo "Before: ${{ github.event.before }}"
-          echo "SHA: ${{ github.sha }}"
-          PKGS=""
-
-          # workflow_dispatch: только явно указанный пакет, иначе ничего
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PKG="${{ github.event.inputs.only_pkg }}"
-            if [ -z "$PKG" ]; then
-              echo "workflow_dispatch without only_pkg — nothing to build"
-              echo "has_packages=false" >> $GITHUB_OUTPUT
-              echo "matrix=[]" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-            echo "Manual build: $PKG"
-            MATRIX=$(printf '%s\n' "$PKG" | jq -R . | jq -sc .)
-            echo "has_packages=true" >> $GITHUB_OUTPUT
-            echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # pull_request / push
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-            HEAD="${{ github.event.pull_request.head.sha }}"
-          else
-            BASE="${{ github.event.before }}"
-            HEAD="${{ github.sha }}"
-          fi
-
-          echo "BASE=$BASE HEAD=$HEAD"
-
-          # первый push / force push: ничего не собираем автоматически
-          if [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ -z "$BASE" ]; then
-            echo "First push / force push — nothing to build automatically"
-            echo "has_packages=false" >> $GITHUB_OUTPUT
-            echo "matrix=[]" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          git fetch origin "$BASE" || git fetch --unshallow || true
-
-          for f in $(git diff --name-only "$BASE" "$HEAD" 2>/dev/null); do
-            case "$f" in
-              srcpkgs/*)
-                name=$(echo "$f" | cut -d/ -f2)
-                [ "$name" = "base-files" ] && continue
-                [ -z "$name" ] && continue
-                case " $PKGS " in
-                  *" $name "*) ;;
-                  *) PKGS="$PKGS $name" ;;
-                esac
-                ;;
-            esac
-          done
-
-          PKGS=$(echo "$PKGS" | xargs)
-          echo "Packages to build: '$PKGS'"
-
-          if [ -z "$PKGS" ]; then
-            echo "has_packages=false" >> $GITHUB_OUTPUT
-            echo "matrix=[]" >> $GITHUB_OUTPUT
-          else
-            MATRIX=$(printf '%s\n' $PKGS | jq -R . | jq -sc .)
-            echo "has_packages=true" >> $GITHUB_OUTPUT
-            echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          fi
-
-  build:
-    name: Build ${{ matrix.pkg }}
-    needs: prepare
-    if: needs.prepare.outputs.has_packages == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pkg: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+      has_packages: ${{ steps.check.outputs.has_packages }}
 
     env:
       XBPS_REPOSITORY: https://repo-de.voidlinux.org/current
@@ -159,30 +63,116 @@ jobs:
           sudo -Eu builder ./xbps-src binary-bootstrap
           sudo -Eu builder ./xbps-src update-sys
 
-      - name: Build ${{ matrix.pkg }}
+      - name: Find changed templates
+        id: changed
         run: |
-          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
-          [ -d hostdir ] && chown -R builder:builder hostdir
-          sudo -Eu builder ./xbps-src pkg ${{ matrix.pkg }}
+          echo "Event: ${{ github.event_name }}"
+          PKGS=""
 
-      - name: Show built packages
-        run: find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null || echo "Nothing found"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PKG="${{ github.event.inputs.only_pkg }}"
+            if [ -z "$PKG" ]; then
+              echo "workflow_dispatch without only_pkg — nothing to build"
+              echo "packages=" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            echo "packages=$PKG" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          echo "BASE=$BASE HEAD=$HEAD"
+
+          if [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ -z "$BASE" ]; then
+            echo "First push / force push — nothing to build automatically"
+            echo "packages=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          git fetch origin "$BASE" || git fetch --unshallow || true
+
+          for f in $(git diff --name-only "$BASE" "$HEAD" 2>/dev/null); do
+            case "$f" in
+              srcpkgs/*)
+                name=$(echo "$f" | cut -d/ -f2)
+                [ "$name" = "base-files" ] && continue
+                [ -z "$name" ] && continue
+                case " $PKGS " in
+                  *" $name "*) ;;
+                  *) PKGS="$PKGS $name" ;;
+                esac
+                ;;
+            esac
+          done
+
+          PKGS=$(echo "$PKGS" | xargs)
+          echo "Packages to build: '$PKGS'"
+          echo "packages=$PKGS" >> $GITHUB_OUTPUT
+
+      - name: Build packages
+        if: steps.changed.outputs.packages != ''
+        run: |
+          [ -d masterdir ] && chown -R builder:builder masterdir
+          [ -d hostdir ] && chown -R builder:builder hostdir
+          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
+
+          STASH=/tmp/stash
+          mkdir -p "$STASH"
+          mkdir -p hostdir/binpkgs/main
+
+          FAILED=0
+          for pkg in ${{ steps.changed.outputs.packages }}; do
+            echo "━━━ Building: $pkg ━━━"
+
+            # Собрать пакет
+            if ! sudo -Eu builder ./xbps-src pkg "$pkg"; then
+              echo "FAILED: $pkg"
+              FAILED=1
+            fi
+
+            # Убрать свежие .xbps из hostdir, чтобы следующий update-sys их не увидел
+            find hostdir/binpkgs/main -maxdepth 1 -name '*.xbps*' -exec mv -t "$STASH/" {} + 2>/dev/null || true
+            rm -f hostdir/binpkgs/main/x86_64-repodata* 2>/dev/null || true
+          done
+
+          # Вернуть .xbps для upload
+          find "$STASH" -maxdepth 1 -name '*.xbps*' -exec mv -t hostdir/binpkgs/main/ {} + 2>/dev/null || true
+
+          exit $FAILED
+
+      - name: Check that packages were built
+        id: check
+        run: |
+          find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null || echo "Nothing found"
+          if find hostdir/binpkgs/ -name "*.xbps" 2>/dev/null | grep -q .; then
+            echo "has_packages=true" >> $GITHUB_OUTPUT
+            find hostdir/binpkgs/ -name "*.xbps"
+          else
+            echo "has_packages=false" >> $GITHUB_OUTPUT
+            echo "No .xbps files found"
+          fi
 
       - name: Upload artifacts
+        if: steps.check.outputs.has_packages == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.pkg }}-${{ github.sha }}
+          name: akira-packages-${{ github.sha }}
           path: hostdir/binpkgs/**/*.xbps
           retention-days: 7
-          if-no-files-found: warn
 
   deploy:
     name: Sign and deploy to VPS
     runs-on: ubuntu-latest
-    needs: [prepare, build]
+    needs: build
     if: >
-      needs.prepare.outputs.has_packages == 'true' &&
-      needs.build.result == 'success' &&
+      needs.build.outputs.has_packages == 'true' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main'
     environment: production
@@ -201,12 +191,13 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: pkg-*-${{ github.sha }}
+          name: akira-packages-${{ github.sha }}
           path: ./pkgs
-          merge-multiple: true
 
-      - name: Show downloaded artifacts
-        run: ls -la ./pkgs
+      - name: Flatten artifacts
+        run: |
+          find ./pkgs -mindepth 2 -name "*.xbps" -exec mv -t ./pkgs {} +
+          ls -la ./pkgs
 
       - name: Restore XBPS signing key
         env:
@@ -323,7 +314,7 @@ jobs:
         run: |
           rsync -avz \
             -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
-            ./pkgs/*.xbps \
+            ./pkgs/*.xbps ./pkgs/*.sig2 \
             "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/"
 
           REPODATA_FILES="./repo-current/x86_64-repodata"
