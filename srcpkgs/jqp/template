@@ -1,0 +1,36 @@
+# Template file for 'jqp'
+pkgname=jqp
+version=0.8.0
+revision=1
+archs="x86_64"
+wrksrc="jqp-${version}"
+hostmakedepends="libarchive"
+short_desc="A TUI playground to experiment with jq"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/noahgorstein/jqp"
+distfiles="https://github.com/noahgorstein/jqp/releases/download/v${version}/jqp_Linux_x86_64.tar.gz"
+checksum=66b2a100ff114a8bbe45a8e6052269fb2f4c61de4edd5ea57b763bf2ec7c6593
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="glibc"
+
+skip_extraction=yes
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/jqp_Linux_x86_64.tar.gz \
+        -C "${wrksrc}"
+    if [ "$(ls -A "${wrksrc}" | wc -l)" -eq 1 ] && [ -d "${wrksrc}/$(ls -A "${wrksrc}")" ]; then
+        local subdir=$(ls -A "${wrksrc}")
+        mv "${wrksrc}/${subdir}"/* "${wrksrc}/"
+        rmdir "${wrksrc}/${subdir}"
+    fi
+}
+
+do_install() {
+    vbin jqp
+    vlicense LICENSE
+}
