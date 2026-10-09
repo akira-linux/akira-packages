@@ -1,7 +1,8 @@
 # Template file for 'librepods'
 pkgname=librepods
-version=1.0.1-rc1
+version=1.0.1.rc1
 revision=1
+_tag=1.0.1-rc1
 build_style=cmake
 build_wrksrc="linux"
 configure_args="-DCMAKE_BUILD_TYPE=Release"
@@ -13,7 +14,7 @@ short_desc="AirPods features unlocked for Linux - noise control, ear detection, 
 maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/kavishdevar/librepods"
-distfiles="https://github.com/kavishdevar/librepods/archive/refs/tags/v${version}.tar.gz>librepods-${version}.tar.gz"
+distfiles="https://github.com/kavishdevar/librepods/archive/refs/tags/v${_tag}.tar.gz>librepods-${_tag}.tar.gz"
 checksum=f0262511c296e5e97e6eb0f8a24aa6617248da46a33ffef54dbea0558c494f6e
 
 do_install() {
