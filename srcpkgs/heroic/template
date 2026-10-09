@@ -1,0 +1,58 @@
+# Template file for 'heroic'
+pkgname=heroic
+version=2.22.3
+revision=1
+archs="x86_64"
+wrksrc="heroic-${version}"
+hostmakedepends="libarchive"
+short_desc="Heroic Games Launcher - an Open Source GOG and Epic Games launcher"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://heroicgameslauncher.com/"
+distfiles="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${version}/Heroic-${version}-linux-amd64.deb"
+checksum=f89eed7e0eb900fbe3051edfedbe7532db14328241cbf8c1fb766462dfc0b849
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/Heroic-${version}-linux-amd64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vmkdir opt/heroic
+    if [ -d "opt/Heroic" ]; then
+        vcopy "opt/Heroic/*" opt/heroic
+    elif [ -d "opt/heroic" ]; then
+        vcopy "opt/heroic/*" opt/heroic
+    fi
+
+    vmkdir usr/bin
+    ln -sf /opt/heroic/heroic ${DESTDIR}/usr/bin/heroic
+
+    for size in 16 24 32 48 64 128 256; do
+        local icon_src="usr/share/icons/hicolor/${size}x${size}/apps/heroic.png"
+        if [ -f "$icon_src" ]; then
+            vmkdir "usr/share/icons/hicolor/${size}x${size}/apps"
+            vinstall "$icon_src" 644 "usr/share/icons/hicolor/${size}x${size}/apps" heroic.png
+        fi
+    done
+    vmkdir usr/share/pixmaps
+    vinstall "usr/share/icons/hicolor/256x256/apps/heroic.png" 644 usr/share/pixmaps heroic.png
+
+    rm -f ${DESTDIR}/usr/share/applications/heroic.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/heroic.desktop 644 usr/share/applications
+
+    if [ -f "usr/share/doc/heroic/copyright" ]; then
+        vlicense usr/share/doc/heroic/copyright
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

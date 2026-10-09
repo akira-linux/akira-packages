@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Heroic Games Launcher
+Comment=An Open Source GOG and Epic Games launcher
+Exec=heroic %U
+Icon=heroic
+Terminal=false
+Type=Application
+Categories=Game;
+StartupNotify=true
