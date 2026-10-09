@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Minecraft Launcher
+Comment=Official Minecraft Launcher
+Exec=minecraft-launcher %U
+Icon=minecraft-launcher
+Terminal=false
+Type=Application
+Categories=Game;
+StartupNotify=true

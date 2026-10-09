@@ -1,0 +1,40 @@
+# Template file for 'minecraft-launcher'
+pkgname=minecraft-launcher
+version=2.1.3
+revision=1
+archs="x86_64"
+wrksrc="minecraft-launcher"
+short_desc="Official Minecraft Launcher"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Minecraft"
+homepage="https://mojang.com/"
+distfiles="https://launcher.mojang.com/download/Minecraft.tar.gz"
+checksum=695269281547bbbcf47fe74633027a0e4ddc13a61060c686a7217e85d314e45e
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/Minecraft.tar.gz -C "${wrksrc}" --strip-components 1
+}
+
+do_install() {
+    vmkdir opt/minecraft-launcher
+    vcopy "*" opt/minecraft-launcher
+
+    vmkdir usr/bin
+    ln -sf /opt/minecraft-launcher/minecraft-launcher ${DESTDIR}/usr/bin/minecraft-launcher
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/minecraft-launcher.png 644 usr/share/icons/hicolor/256x256/apps minecraft-launcher.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/minecraft-launcher.png 644 usr/share/pixmaps minecraft-launcher.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/minecraft-launcher.desktop 644 usr/share/applications
+
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
