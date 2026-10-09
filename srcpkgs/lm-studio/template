@@ -4,6 +4,7 @@ version=0.4.26.4
 revision=1
 archs="x86_64"
 _tag=0.4.26-4
+python_version=3
 wrksrc="lmstudio-${version}"
 hostmakedepends="fuse glib"
 distfiles="https://installers.lmstudio.ai/linux/x64/${_tag}/LM-Studio-${_tag}-x64.AppImage"
