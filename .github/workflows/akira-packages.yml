@@ -57,7 +57,7 @@ jobs:
           git config --system --add safe.directory /__w/akira-packages/akira-packages
           chown -R builder:builder .
           sudo -Eu builder ./xbps-src binary-bootstrap
-          sudo -Eu builder ./xbps-src update-sys++
+          sudo -Eu builder ./xbps-src update-sys
 
       - name: Find changed templates
         id: changed
