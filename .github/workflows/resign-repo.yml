@@ -1,0 +1,76 @@
+name: Re-sign repository
+
+on:
+  workflow_dispatch:
+
+jobs:
+  resign:
+    name: Re-sign repodata on VPS
+    runs-on: ubuntu-latest
+    environment: production
+    container:
+      image: ghcr.io/void-linux/void-glibc-full
+    steps:
+      - name: Prepare container
+        run: |
+          xbps-install -Syu xbps && xbps-install -yu
+          xbps-install -y openssh rsync openssl xbps
+
+      - name: Restore signing key
+        env:
+          AKIRA_PRIVATE_KEY: ${{ secrets.AKIRA_PRIVATE_KEY }}
+        run: |
+          echo "$AKIRA_PRIVATE_KEY" > /tmp/akira.pem
+          openssl rsa -in /tmp/akira.pem -out /tmp/akira.key
+          chmod 600 /tmp/akira.key
+          rm -f /tmp/akira.pem
+          openssl rsa -in /tmp/akira.key -check -noout
+
+      - name: Setup SSH
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_DEPLOY_KEY" > ~/.ssh/akira_deploy
+          sed -i 's/\\n/\n/g' ~/.ssh/akira_deploy
+          chmod 600 ~/.ssh/akira_deploy
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Fetch repo
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p repo-current
+          rsync -avz \
+            -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/" \
+            ./repo-current/
+
+      - name: Rebuild index and sign
+        run: |
+          cd repo-current
+          xbps-rindex -r .
+          xbps-rindex -s --privkey /tmp/akira.key --signedby "Akira Linux" .
+          ls -la x86_64-repodata*
+
+      - name: Upload repodata back
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync -avz \
+            -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
+            ./repo-current/x86_64-repodata \
+            ./repo-current/x86_64-repodata.sig2 \
+            "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f /tmp/akira.key
+          rm -f "$HOME/.ssh/akira_deploy" "$HOME/.ssh/known_hosts"
