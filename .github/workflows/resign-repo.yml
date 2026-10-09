@@ -5,7 +5,7 @@ on:
 
 jobs:
   resign:
-    name: Re-sign repodata on VPS
+    name: Rebuild and upload repodata
     runs-on: ubuntu-latest
     environment: production
     container:
@@ -38,7 +38,7 @@ jobs:
           chmod 600 ~/.ssh/akira_deploy
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Fetch repo
+      - name: Fetch repo from VPS
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
@@ -49,13 +49,23 @@ jobs:
             -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
             "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/" \
             ./repo-current/
+          echo "=== Fetched ==="
+          ls -la repo-current/ | head -20
+          echo "=== repodata before ==="
+          ls -la repo-current/x86_64-repodata* || true
 
       - name: Rebuild index and sign
         run: |
-          cd repo-current
-          xbps-rindex -r .
-          xbps-rindex -s --privkey /tmp/akira.key --signedby "Akira Linux" .
-          ls -la x86_64-repodata*
+          echo "=== rindex -r ==="
+          xbps-rindex -r repo-current
+          echo "rindex -r exit: $?"
+
+          echo "=== rindex -s ==="
+          xbps-rindex -s --privkey /tmp/akira.key --signedby "Akira Linux" repo-current
+          echo "rindex -s exit: $?"
+
+          echo "=== repodata after ==="
+          ls -la repo-current/x86_64-repodata* || true
 
       - name: Upload repodata back
         env:
@@ -63,10 +73,19 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_USER: ${{ secrets.SSH_USER }}
         run: |
+          FILES="repo-current/x86_64-repodata"
+          if [ -f repo-current/x86_64-repodata.sig2 ]; then
+            FILES="$FILES repo-current/x86_64-repodata.sig2"
+          else
+            echo "WARNING: x86_64-repodata.sig2 not created, uploading only repodata"
+          fi
+
+          echo "=== Files to upload ==="
+          ls -la $FILES
+
           rsync -avz \
             -e "ssh -p $SSH_PORT -i $HOME/.ssh/akira_deploy -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes" \
-            ./repo-current/x86_64-repodata \
-            ./repo-current/x86_64-repodata.sig2 \
+            $FILES \
             "$SSH_USER@$SSH_HOST:/var/www/akiralinux.org/repo/current/"
 
       - name: Cleanup
