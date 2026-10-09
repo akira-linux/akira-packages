@@ -1,0 +1,30 @@
+# Template file for 'lpm'
+pkgname=lpm
+version=20260902
+revision=1
+archs="x86_64"
+wrksrc="lpm-${version}"
+hostmakedepends="libarchive"
+short_desc="Plugin manager for Lite XL editor"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/lite-xl/lite-xl-plugin-manager"
+distfiles="https://github.com/lite-xl/lite-xl-plugin-manager/releases/download/continuous/lpm.x86_64-linux"
+checksum=6f31332425932e334e8bc20787a79170f83560f7c9fdd2e070ee167c2d2ed8d9
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    cp "${XBPS_SRCDISTDIR}/${pkgname}-${version}/lpm.x86_64-linux" "${wrksrc}/lpm"
+    chmod +x "${wrksrc}/lpm"
+}
+
+do_install() {
+    vbin lpm
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}

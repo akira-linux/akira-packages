@@ -1,0 +1,43 @@
+# Template file for 'macchina'
+pkgname=macchina
+version=6.4.0
+revision=1
+archs="x86_64"
+wrksrc="macchina-${version}"
+hostmakedepends="libarchive"
+short_desc="System information frontend, with an emphasis on performance"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/Macchina-CLI/macchina"
+distfiles="https://github.com/Macchina-CLI/macchina/releases/download/v${version}/macchina-v${version}-linux-gnu-x86_64.tar.gz"
+checksum=8bd0b11b0d66dcdf3f31e02e898530210b7adab89234545bcbbe1b2942be2681
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/macchina-v${version}-linux-gnu-x86_64.tar.gz -C "${wrksrc}"
+
+    if [ "$(ls -A "${wrksrc}" | wc -l)" -eq 1 ] && [ -d "${wrksrc}/$(ls -A "${wrksrc}")" ]; then
+        local subdir=$(ls -A "${wrksrc}")
+        mv "${wrksrc}/${subdir}"/* "${wrksrc}/"
+        rmdir "${wrksrc}/${subdir}"
+    fi
+    local binfile=$(find "${wrksrc}" -type f -name 'macchina' | head -1)
+    if [ -z "$binfile" ]; then
+        echo "ERROR: macchina binary not found in archive" >&2
+        exit 1
+    fi
+    if [ "$binfile" != "${wrksrc}/macchina" ]; then
+        mv "$binfile" "${wrksrc}/macchina"
+    fi
+}
+
+do_install() {
+    vbin macchina
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
