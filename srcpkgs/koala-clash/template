@@ -1,0 +1,42 @@
+# Template file for 'koala-clash'
+pkgname=koala-clash
+version=1.5.0
+revision=1
+archs="x86_64"
+wrksrc="koala-clash-${version}"
+short_desc="A rule-based proxy client based on Clash"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Proprietary"
+homepage="https://github.com/coolcoala/koala-clash"
+distfiles="https://github.com/coolcoala/koala-clash/releases/download/${version}/Koala.Clash_x86_64.rpm"
+checksum=417b9ae07b970b34ab572c04028463d006f3fe8dfb55d4ca5707930abe5afa67
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio"
+
+do_extract() {
+    mkdir -p ${wrksrc}
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/Koala.Clash_x86_64.rpm -C ${wrksrc}
+}
+
+do_install() {
+    vmkdir opt
+    vcopy opt/Koala.Clash opt/koala-clash
+
+    vmkdir usr
+    vcopy usr/share usr/share
+
+    vmkdir usr/bin
+    if [ -f "${DESTDIR}/opt/koala-clash/clash-verge" ]; then
+        ln -sf /opt/koala-clash/clash-verge ${DESTDIR}/usr/bin/koala-clash
+    else
+        ln -sf /opt/koala-clash/koala-clash ${DESTDIR}/usr/bin/koala-clash
+    fi
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/koala-clash.desktop 644 usr/share/applications
+
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}

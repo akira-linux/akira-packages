@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Koala Clash
+Comment=A rule-based proxy client
+Exec=koala-clash --no-sandbox %U
+Terminal=false
+Type=Application
+Icon=koala-clash
+Categories=Network;
