@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=LocalSend
+Comment=Open source cross-platform alternative to AirDrop
+Exec=localsend %U
+Icon=localsend
+Terminal=false
+Type=Application
+Categories=Network;FileTransfer;
+StartupNotify=true

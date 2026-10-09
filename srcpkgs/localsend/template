@@ -1,0 +1,58 @@
+# Template file for 'localsend'
+pkgname=localsend
+version=1.18.2
+revision=1
+archs="x86_64"
+wrksrc="localsend-${version}"
+hostmakedepends="libarchive"
+short_desc="Open source cross-platform alternative to AirDrop"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://localsend.org/"
+distfiles="https://github.com/localsend/localsend/releases/download/v${version}/LocalSend-${version}-linux-x86-64.deb"
+checksum=cc42a4f3eacdcb25ec31f0016b1272acb003145ab30484db8965450e20c72cd2
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/LocalSend-${version}-linux-x86-64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vmkdir opt/localsend
+    vcopy opt/localsend_app/* opt/localsend
+
+    vmkdir usr/bin
+    ln -sf /opt/localsend/localsend_app ${DESTDIR}/usr/bin/localsend
+
+    for size in 256 128; do
+        local icon="usr/share/icons/hicolor/${size}x${size}/apps/localsend_app.png"
+        if [ -f "$icon" ]; then
+            vmkdir "usr/share/icons/hicolor/${size}x${size}/apps"
+            vinstall "$icon" 644 "usr/share/icons/hicolor/${size}x${size}/apps" localsend.png
+            break
+        fi
+    done
+    vmkdir usr/share/pixmaps
+    local pixmap_src="usr/share/icons/hicolor/256x256/apps/localsend_app.png"
+    [ ! -f "$pixmap_src" ] && pixmap_src="usr/share/icons/hicolor/128x128/apps/localsend_app.png"
+    vinstall "$pixmap_src" 644 usr/share/pixmaps localsend.png
+
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/localsend.desktop 644 usr/share/applications
+
+  
+    if [ -f "usr/share/doc/localsend_app/copyright" ]; then
+        vlicense usr/share/doc/localsend_app/copyright
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}
