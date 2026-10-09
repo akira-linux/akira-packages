@@ -1,0 +1,57 @@
+# Template file for 'lm-studio'
+pkgname=lm-studio
+version=0.4.26.4
+revision=1
+archs="x86_64"
+_tag=0.4.26-4
+wrksrc="lmstudio-${version}"
+hostmakedepends="fuse glib"
+distfiles="https://installers.lmstudio.ai/linux/x64/${_tag}/LM-Studio-${_tag}-x64.AppImage"
+checksum="2c62a38a93ad03ca5daaef28804880be167566783ffafc173ce2e1cb10b7552e"
+homepage="https://lmstudio.ai/"
+license="custom:EULA"
+short_desc="LM Studio - A desktop app for exploring and running large language models locally (AppImage repack)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio"
+
+do_extract() {
+    local appimage="${XBPS_SRCDISTDIR}/${pkgname}-${version}/LM-Studio-${_tag}-x64.AppImage"
+    chmod +x "${appimage}"
+    cd "${XBPS_BUILDDIR}"
+    "${appimage}" --appimage-extract
+    rm -rf "${wrksrc}"
+    mv squashfs-root "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/lm-studio
+    vcopy "*" opt/lm-studio
+
+    find ${DESTDIR}/opt/lm-studio -xtype l -delete
+    find ${DESTDIR}/opt/lm-studio -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/lm-studio -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    if [ -f ${DESTDIR}/opt/lm-studio/chrome-sandbox ]; then
+        chmod 4755 ${DESTDIR}/opt/lm-studio/chrome-sandbox
+    fi
+    if [ -f ${DESTDIR}/opt/lm-studio/chrome_crashpad_handler ]; then
+        chmod 755 ${DESTDIR}/opt/lm-studio/chrome_crashpad_handler
+    fi
+
+    vmkdir usr/bin
+    ln -sf /opt/lm-studio/lm-studio ${DESTDIR}/usr/bin/lmstudio
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/lmstudio.png 644 usr/share/icons/hicolor/256x256/apps lmstudio.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/lmstudio.png 644 usr/share/pixmaps lmstudio.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/lm-studio.desktop 644 usr/share/applications
+}

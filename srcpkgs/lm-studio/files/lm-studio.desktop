@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=LM Studio
+GenericName=AI Model Runner
+Comment=Run large language models locally
+Exec=/usr/bin/lmstudio --no-sandbox %U
+Icon=lmstudio
+Terminal=false
+Type=Application
+Categories=Development;ArtificialIntelligence;Science;
+MimeType=x-scheme-handler/lmstudio;
+StartupWMClass=LM Studio
+StartupNotify=true
