@@ -1,0 +1,33 @@
+# Template file for 'kubeshark'
+pkgname=kubeshark
+version=53.5.0
+revision=1
+archs="x86_64"
+wrksrc="kubeshark-${version}"
+hostmakedepends="libarchive"
+short_desc="Traffic viewer for Kubernetes"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="Apache-2.0"
+homepage="https://github.com/kubeshark/kubeshark"
+distfiles="https://github.com/kubeshark/kubeshark/releases/download/v${version}/kubeshark_linux_amd64"
+checksum=092b9f5067a9281d8cbb81f7fcbb4cef663485094b0ab3840fe96fb30b48fa14
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    # Копируем бинарный файл напрямую (это не архив, а один исполняемый файл)
+    cp ${XBPS_SRCDISTDIR}/${pkgname}-${version}/kubeshark_linux_amd64 "${wrksrc}/kubeshark"
+    chmod +x "${wrksrc}/kubeshark"
+}
+
+do_install() {
+    vbin kubeshark
+
+    # Лицензия (Apache-2.0) — скачайте и положите в FILESDIR, либо используйте запасной файл
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
