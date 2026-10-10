@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# $1 = ACTION (post или pre)
+# $2 = PKGNAME (имя пакета)
+# $3 = VERSION (версия)
+#
+
+case "$1" in
+post)
+    echo "========================================================================="
+    echo " ВНИМАНИЕ: Для активации шрифтов обновите кэш командой:"
+    echo " sudo fc-cache -f"
+    echo ""
+    echo " WARNING: To activate fonts, update the font cache by running:"
+    echo " sudo fc-cache -f"
+    echo "========================================================================="
+    ;;
+esac

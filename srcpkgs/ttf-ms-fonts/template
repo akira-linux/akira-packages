@@ -1,0 +1,30 @@
+# Template file for 'ttf-ms-fonts'
+pkgname=ttf-ms-fonts
+version=2.0
+revision=1
+build_style=gnu-configure
+wrksrc="msfonts"
+hostmakedepends="cabextract"
+depends="fontconfig"
+short_desc="Core TTF Fonts from Microsoft"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Microsoft-EULA"
+homepage="http://corefonts.sourceforge.net"
+distfiles="https://www.freedesktop.org/software/fontconfig/webfonts/webfonts.tar.gz"
+checksum=38f055027988e68f3a35705eb6d698f51ca7af0e295b0813b0a86129b238720c
+
+do_configure() { :; }
+do_build() { :; }
+
+do_install() {
+    for exe in *.exe; do
+        cabextract -q -d "${wrksrc}" "$exe"
+    done
+
+    vmkdir usr/share/fonts/truetype/msttcorefonts
+    find "${wrksrc}" -iname '*.ttf' -print0 | while IFS= read -r -d '' fontfile; do
+        local fontname=$(basename "$fontfile" | tr '[:upper:]' '[:lower:]')
+        vinstall "$fontfile" 644 usr/share/fonts/truetype/msttcorefonts "$fontname"
+    done
+    vlicense Licen.TXT
+}

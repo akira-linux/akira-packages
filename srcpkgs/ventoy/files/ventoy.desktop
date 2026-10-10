@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Icon=ventoy
+Name=Ventoy
+Comment=Ventoy2Disk GUI
+Exec=kdesu /opt/ventoy/VentoyGUI.x86_64
+Terminal=false
+Hidden=false
+Categories=Utility;
+StartupWMClass=Ventoy2Disk.gtk3

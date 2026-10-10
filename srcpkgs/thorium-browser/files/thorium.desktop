@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Thorium Browser
+Comment=Fast, privacy-focused Chromium fork
+Exec=thorium %U
+Icon=thorium
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+StartupNotify=true

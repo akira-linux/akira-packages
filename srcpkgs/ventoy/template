@@ -1,0 +1,47 @@
+# Template file for 'ventoy'
+pkgname=ventoy
+version=1.1.18
+revision=1
+archs="x86_64"
+wrksrc="ventoy-${version}"
+hostmakedepends="libarchive"
+short_desc="A new bootable USB solution"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="http://www.ventoy.net"
+distfiles="https://github.com/ventoy/Ventoy/releases/download/v${version}/ventoy-${version}-linux.tar.gz"
+checksum=d86ff9de63d94c8b8f1f6b14d23c55af4b88e8207bf2893890892a6a97b1ad54
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="bash dosfstools util-linux which xz gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/ventoy-${version}-linux.tar.gz \
+        --strip-components 2 -C "${wrksrc}"
+}
+do_install() {
+    vmkdir opt/ventoy
+    vcopy "*" opt/ventoy
+
+    rm -f ${DESTDIR}/opt/ventoy/VentoyGUI.aarch64
+    rm -f ${DESTDIR}/opt/ventoy/VentoyGUI.mips64el
+    rm -f ${DESTDIR}/opt/ventoy/VentoyGUI.i386
+
+    vmkdir usr/bin
+    ln -sf /opt/ventoy/Ventoy2Disk.sh ${DESTDIR}/usr/bin/ventoy2disk
+    ln -sf /opt/ventoy/VentoyGUI.x86_64 ${DESTDIR}/usr/bin/ventoygui
+    ln -sf /opt/ventoy/VentoyPlugson.sh ${DESTDIR}/usr/bin/ventoyplugson
+    ln -sf /opt/ventoy/VentoyWeb.sh ${DESTDIR}/usr/bin/ventoyweb
+
+    vmkdir usr/share/icons/hicolor/128x128/apps
+    vinstall ${FILESDIR}/ventoy.png 644 usr/share/icons/hicolor/128x128/apps ventoy.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/ventoy.png 644 usr/share/pixmaps ventoy.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/ventoy.desktop 644 usr/share/applications
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}
