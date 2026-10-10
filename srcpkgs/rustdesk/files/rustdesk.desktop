@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=RustDesk
+Comment=Open source remote desktop software
+Exec=rustdesk %U
+Icon=rustdesk
+Terminal=false
+Type=Application
+Categories=Network;RemoteAccess;
+StartupNotify=true

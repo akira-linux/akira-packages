@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=SimpleX Chat
+Comment=Private and secure messenger
+Exec=simplex-desktop %U
+Icon=simplex-desktop
+Terminal=false
+Type=Application
+Categories=Network;InstantMessaging;
+StartupNotify=true

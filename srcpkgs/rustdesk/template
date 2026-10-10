@@ -1,0 +1,59 @@
+# Template file for 'rustdesk'
+pkgname=rustdesk
+version=1.5.0
+revision=1
+archs="x86_64"
+wrksrc="rustdesk-${version}"
+hostmakedepends="libarchive"
+short_desc="Open source remote desktop software"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="AGPL-3.0-or-later"
+homepage="https://rustdesk.com/"
+distfiles="https://github.com/rustdesk/rustdesk/releases/download/${version}/rustdesk-${version}-x86_64.deb"
+checksum=4e2b9701d25a7ef373f3d09bda584a37d6902f97a6ab15f2e86d4a5783e2a0ec
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/rustdesk-${version}-x86_64.deb -C "${wrksrc}"
+    local data_archive=$(ls "${wrksrc}"/data.tar.* 2>/dev/null | head -1)
+    if [ -n "$data_archive" ]; then
+        bsdtar -xf "$data_archive" -C "${wrksrc}"
+        rm "$data_archive"
+    fi
+    rm -f "${wrksrc}"/debian-binary "${wrksrc}"/control.tar.*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+
+    if [ -d "${DESTDIR}/usr/share/rustdesk" ]; then
+        vmkdir opt/rustdesk
+        mv ${DESTDIR}/usr/share/rustdesk/* ${DESTDIR}/opt/rustdesk/
+        rmdir ${DESTDIR}/usr/share/rustdesk
+    fi
+
+    vmkdir usr/bin
+    ln -sf /opt/rustdesk/rustdesk ${DESTDIR}/usr/bin/rustdesk
+
+    rm -f ${DESTDIR}/usr/share/applications/rustdesk.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/rustdesk.desktop 644 usr/share/applications
+
+    if ! ls ${DESTDIR}/usr/share/icons/hicolor/*/apps/rustdesk.png 1>/dev/null 2>&1; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/rustdesk.png 644 usr/share/icons/hicolor/256x256/apps rustdesk.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/rustdesk.png 644 usr/share/pixmaps rustdesk.png
+    fi
+
+    if [ -f "usr/share/doc/rustdesk/copyright" ]; then
+        vlicense usr/share/doc/rustdesk/copyright
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

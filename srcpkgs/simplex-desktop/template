@@ -1,0 +1,69 @@
+# Template file for 'simplex-desktop'
+pkgname=simplex-desktop
+version=7.0.3
+revision=1
+archs="x86_64"
+wrksrc="simplex-desktop-${version}"
+hostmakedepends="libarchive"
+short_desc="SimpleX Chat: private and secure messenger"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="AGPL-3.0-or-later"
+homepage="https://simplex.chat/"
+distfiles="https://github.com/simplex-chat/simplex-chat/releases/download/v${version}/simplex-desktop-ubuntu-22_04-x86_64.deb"
+checksum=21be1e78c1089c01567ccfec58cdf3e72a2733aa232c5288b8f155e6c7caba0b
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/simplex-desktop-ubuntu-22_04-x86_64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vmkdir opt/simplex
+    vcopy "opt/simplex/*" opt/simplex
+
+    vmkdir usr/bin
+    ln -sf /opt/simplex/bin/simplex ${DESTDIR}/usr/bin/simplex-desktop
+
+    local icon_found=""
+    for dir in "opt/simplex/resources/icons" "opt/simplex/share/icons" \
+               "opt/simplex/lib/app/resources/icons" "opt/simplex/icons"; do
+        for name in simplex simplex-desktop icon; do
+            local icon_path="${dir}/${name}.png"
+            if [ -f "$icon_path" ]; then
+                vmkdir usr/share/icons/hicolor/256x256/apps
+                vinstall "$icon_path" 644 usr/share/icons/hicolor/256x256/apps simplex-desktop.png
+                vmkdir usr/share/pixmaps
+                vinstall "$icon_path" 644 usr/share/pixmaps simplex-desktop.png
+                icon_found=1
+                break 2
+            fi
+        done
+    done
+    if [ -z "$icon_found" ]; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/simplex-desktop.png 644 usr/share/icons/hicolor/256x256/apps simplex-desktop.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/simplex-desktop.png 644 usr/share/pixmaps simplex-desktop.png
+    fi
+
+    rm -f ${DESTDIR}/usr/share/applications/simplex-desktop.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/simplex-desktop.desktop 644 usr/share/applications
+
+
+    if [ -f "opt/simplex/LICENSE" ]; then
+        vlicense opt/simplex/LICENSE
+    elif [ -f "opt/simplex/LICENSE.txt" ]; then
+        vlicense opt/simplex/LICENSE.txt
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

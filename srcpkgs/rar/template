@@ -1,0 +1,30 @@
+# Template file for 'rar'
+pkgname=rar
+version=7.23
+revision=1
+archs="x86_64"
+wrksrc="rar"
+short_desc="Command-line RAR compression utility"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:RAR"
+homepage="https://www.rarlab.com"
+distfiles="https://www.rarlab.com/rar/rarlinux-x64-${version//./}.tar.gz"
+checksum=759b4b6aa0d9f77131882162951193f3a0e54bf60e1d8dc4255aa308accab588
+noshlibs=yes
+noverifyrdeps=yes
+nopie=yes
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/rarlinux-x64-${version//./}.tar.gz -C "${wrksrc}" --strip-components 1
+}
+
+do_install() {
+    vbin rar
+    vbin unrar
+
+    cp rar.txt rar.1
+    vman rar.1
+    vlicense license.txt
+}
