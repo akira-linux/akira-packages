@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=OpenDeck
 Comment=OpenDeck
-Exec=opendeck %U
+Exec=opendeck --ozone-platform=wayland %U
 Terminal=false
 Type=Application
 Icon=opendeck
-Categories=Utility;
+Categories=Utility;Development;HardwareSettings;

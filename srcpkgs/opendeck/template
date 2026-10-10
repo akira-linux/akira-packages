@@ -1,7 +1,7 @@
 # Template file for 'opendeck'
 pkgname=opendeck
 version=2.14.0
-revision=1
+revision=2
 archs="x86_64"
 wrksrc="opendeck-${version}"
 short_desc="OpenDeck – a desktop application for Stream Deck"
@@ -14,7 +14,7 @@ nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
 
-depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio libwebkit2gtk41"
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio libwebkit2gtk41 libayatana-appindicator"
 
 do_extract() {
     mkdir -p ${wrksrc}
