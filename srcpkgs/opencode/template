@@ -1,0 +1,38 @@
+# Template file for 'opencode'
+pkgname=opencode
+version=1.18.35
+revision=1
+archs="x86_64"
+wrksrc="opencode-${version}"
+hostmakedepends="tar"
+distfiles="https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz"
+checksum=c8f888b451f5494a18f858fffb0e0b68f4e4baa9c241761c5f206884f0fa640d
+homepage="https://github.com/anomalyco/opencode"
+license="MIT"
+short_desc="Open source AI coding agent (CLI/TUI version)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+nostrip=yes
+
+depends="ripgrep"
+
+do_extract() {
+	mkdir -p ${wrksrc}
+	tar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/opencode-linux-x64.tar.gz -C ${wrksrc}
+}
+
+do_install() {
+	vmkdir usr/bin
+	vcopy ${wrksrc}/opencode usr/bin/opencode-cli
+	chmod 755 ${DESTDIR}/usr/bin/opencode-cli
+	ln -sf opencode-cli ${DESTDIR}/usr/bin/opencode
+
+	if [ -f ${FILESDIR}/opencode.png ]; then
+		vinstall ${FILESDIR}/opencode.png 644 usr/share/icons/hicolor/256x256/apps opencode.png
+		vinstall ${FILESDIR}/opencode.png 644 usr/share/pixmaps opencode.png
+	fi
+
+	vinstall ${FILESDIR}/opencode.desktop 644 usr/share/applications
+	vmkdir usr/share/licenses/${pkgname}
+	
+	echo "OpenCode is licensed under MIT. See https://github.com/anomalyco/opencode" > ${DESTDIR}/usr/share/licenses/${pkgname}/LICENSE
+}
