@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=PortProton
+Comment=Software for playing Microsoft Windows games and launchers
+Exec=portproton
+Icon=portproton
+Terminal=false
+Type=Application
+Categories=Game;Emulator;
+StartupNotify=true

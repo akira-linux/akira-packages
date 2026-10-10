@@ -1,0 +1,49 @@
+# Template file for 'portproton'
+pkgname=portproton
+version=1.7.5
+revision=1
+archs="x86_64"
+wrksrc="portproton-${version}"
+hostmakedepends="libarchive librsvg-utils"
+short_desc="Software for playing Microsoft Windows games and launchers"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://portproton.ru/"
+distfiles="https://github.com/Castro-Fidel/PortProton_dpkg/releases/download/portproton_amd64/portproton_amd64.deb"
+checksum=0508fb8ebce551e6ee720d2181a779a74bff5f546f26033c055fc5d17c2af223
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="bash bubblewrap cabextract curl dbus desktop-file-utils freetype gdk-pixbuf gzip ImageMagick jq wine yad"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/portproton_amd64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+
+    local svg="usr/share/icons/hicolor/scalable/apps/ru.linux_gaming.PortProton.svg"
+    if [ -f "$svg" ]; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        rsvg-convert -w 256 -h 256 "$svg" -o "${DESTDIR}/usr/share/icons/hicolor/256x256/apps/portproton.png"
+        vmkdir usr/share/pixmaps
+        rsvg-convert -w 256 -h 256 "$svg" -o "${DESTDIR}/usr/share/pixmaps/portproton.png"
+    else
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/portproton.png 644 usr/share/icons/hicolor/256x256/apps portproton.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/portproton.png 644 usr/share/pixmaps portproton.png
+    fi
+
+    rm -f ${DESTDIR}/usr/share/applications/ru.linux_gaming.PortProton.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/portproton.desktop 644 usr/share/applications
+
+    vlicense usr/share/licenses/portproton/LICENSE
+}

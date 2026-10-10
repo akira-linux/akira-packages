@@ -1,0 +1,55 @@
+# Template file for 'peazip'
+pkgname=peazip
+version=11.3.0
+revision=1
+archs="x86_64"
+wrksrc="peazip_portable-${version}.LINUX.Qt6.x86_64"
+hostmakedepends="libarchive"
+short_desc="Free file archiver and manager"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="LGPL-3.0-or-later"
+homepage="https://peazip.github.io/"
+distfiles="https://github.com/peazip/PeaZip/releases/download/${version}/peazip_portable-${version}.LINUX.Qt6.x86_64.tar.gz"
+checksum=7743d660c3c2525127d61c5230b05009ecd5626e87bb1a0dd786ddd90bfdb7c1
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="qt6-base"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/peazip_portable-${version}.LINUX.Qt6.x86_64.tar.gz \
+        --strip-components 1 -C "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/peazip
+    vcopy "*" opt/peazip
+    vcopy ".[!.]*" opt/peazip 2>/dev/null || true
+
+    find ${DESTDIR}/opt/peazip -xtype l -delete
+    find ${DESTDIR}/opt/peazip -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/peazip -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    vinstall ${FILESDIR}/peazip.sh 755 usr/bin peazip
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/peazip.png 644 usr/share/icons/hicolor/256x256/apps peazip.png
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/peazip.png 644 usr/share/pixmaps peazip.png
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/peazip.desktop 644 usr/share/applications
+
+    local license_file=$(find . -maxdepth 1 -iname 'license*' -o -iname 'copying*' -print -quit)
+    if [ -n "$license_file" ]; then
+        vlicense "$license_file"
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

@@ -1,0 +1,80 @@
+#!/bin/bash
+set -euo pipefail
+
+TEMPLATE="$(dirname "$0")/template"
+[[ -f ${TEMPLATE} ]] || { echo "ERROR: template not found" >&2; exit 1; }
+
+CURRENT=$(grep '^version=' "${TEMPLATE}" | cut -d= -f2)
+echo "Current version: ${CURRENT}"
+
+DEB_URL="https://github.com/Castro-Fidel/PortProton_dpkg/releases/download/portproton_amd64/portproton_amd64.deb"
+
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "${TMPDIR}"' EXIT
+
+echo "Downloading portproton_amd64.deb..."
+curl -fsSL --retry 3 --retry-delay 2 --max-time 600 \
+    -o "${TMPDIR}/portproton.deb" "${DEB_URL}"
+
+cd "${TMPDIR}"
+
+echo "Extracting control metadata..."
+ar x portproton.deb
+
+LATEST=$(python3 - << 'PYEOF'
+import os, io, sys, lzma, gzip, tarfile
+
+for name in os.listdir('.'):
+    if not name.startswith('control.tar'):
+        continue
+
+    try:
+        if name.endswith('.xz'):
+            data = lzma.open(name, 'rb').read()
+        elif name.endswith('.gz'):
+            data = gzip.open(name, 'rb').read()
+        elif name.endswith('.tar'):
+            data = open(name, 'rb').read()
+        else:
+            continue
+
+        with tarfile.open(fileobj=io.BytesIO(data)) as tf:
+            for m in tf.getmembers():
+                if m.name in ('./control', 'control'):
+                    f = tf.extractfile(m)
+                    if f:
+                        text = f.read().decode('utf-8', errors='replace')
+                        for line in text.splitlines():
+                            if line.startswith('Version:'):
+                                print(line.split(':', 1)[1].strip().split('-')[0])
+                                sys.exit(0)
+    except Exception as e:
+        print(f'failed on {name}: {e}', file=sys.stderr)
+        continue
+
+sys.exit('Version not found in control')
+PYEOF
+)
+
+if [[ -z ${LATEST} ]]; then
+    echo "ERROR: could not parse Version" >&2
+    exit 1
+fi
+
+echo "Latest version: ${LATEST}"
+
+if [[ ${LATEST} == "${CURRENT}" ]]; then
+    echo "portproton: ${CURRENT} — already up to date"
+    exit 0
+fi
+
+echo "portproton: ${CURRENT} → ${LATEST}"
+
+CHECKSUM=$(sha256sum portproton.deb | cut -d' ' -f1)
+[[ ${CHECKSUM} =~ ^[0-9a-f]{64}$ ]] || { echo "ERROR: invalid checksum" >&2; exit 1; }
+
+sed -i "s/^version=.*/version=${LATEST}/" "${TEMPLATE}"
+sed -i "s/^checksum=.*/checksum=${CHECKSUM}/" "${TEMPLATE}"
+sed -i "s/^revision=.*/revision=1/" "${TEMPLATE}"
+
+echo "Done: ${LATEST} (${CHECKSUM:0:16}...)"
