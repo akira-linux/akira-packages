@@ -1,0 +1,87 @@
+# Template file for 'musescore-bin'
+pkgname=musescore-bin
+version=4.7.5.260831071
+revision=1
+archs="x86_64"
+wrksrc="musescore-${version}"
+hostmakedepends="fuse glib"
+short_desc="Music notation and composition software (AppImage repack)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://musescore.org/"
+distfiles="https://github.com/musescore/MuseScore/releases/download/v4.7.5/MuseScore-Studio-4.7.5.260831071-x86_64.AppImage"
+checksum=a31b2da2dbcc2191bcc98beb7be5c15f2f517bedb3444def96fe3088b74d3a1e
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio"
+
+do_extract() {
+    local appimage="${XBPS_SRCDISTDIR}/${pkgname}-${version}/MuseScore-Studio-${version}-x86_64.AppImage"
+    chmod +x "${appimage}"
+    cd "${XBPS_BUILDDIR}"
+    "${appimage}" --appimage-extract
+    rm -rf "${wrksrc}"
+    mv squashfs-root "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/musescore
+    vcopy "*" opt/musescore
+    vcopy ".[!.]*" opt/musescore 2>/dev/null || true
+
+    find ${DESTDIR}/opt/musescore -xtype l -delete
+    find ${DESTDIR}/opt/musescore -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/musescore -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    chmod -R g-w,o-w ${DESTDIR}/opt/musescore
+
+    vmkdir usr/bin
+    if [ -f "${DESTDIR}/opt/musescore/bin/mscore4portable" ]; then
+        ln -sf /opt/musescore/bin/mscore4portable ${DESTDIR}/usr/bin/musescore
+    elif [ -f "${DESTDIR}/opt/musescore/AppRun" ]; then
+        ln -sf /opt/musescore/AppRun ${DESTDIR}/usr/bin/musescore
+    else
+        local bin=$(find ${DESTDIR}/opt/musescore/bin -type f -executable -name '*portable' -print -quit 2>/dev/null)
+        if [ -n "$bin" ]; then
+            ln -sf "$bin" ${DESTDIR}/usr/bin/musescore
+        fi
+    fi
+
+    local icon_found=""
+    for dir in usr/share/icons/hicolor/256x256/apps usr/share/icons/hicolor/128x128/apps usr/share/pixmaps \
+               share/icons/hicolor/256x256/apps share/icons/hicolor/128x128/apps share/pixmaps; do
+        for name in mscore4portable mscore musescore MuseScore org.musescore.MuseScore4portable; do
+            local icon_path="${DESTDIR}/opt/musescore/${dir}/${name}.png"
+            if [ -f "${icon_path}" ]; then
+                vmkdir usr/share/icons/hicolor/256x256/apps
+                vinstall "${icon_path}" 644 usr/share/icons/hicolor/256x256/apps musescore.png
+                vmkdir usr/share/pixmaps
+                vinstall "${icon_path}" 644 usr/share/pixmaps musescore.png
+                icon_found=1
+                break 2
+            fi
+        done
+    done
+    if [ -z "$icon_found" ]; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/musescore.png 644 usr/share/icons/hicolor/256x256/apps musescore.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/musescore.png 644 usr/share/pixmaps musescore.png
+    fi
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/musescore.desktop 644 usr/share/applications
+
+    if [ -f LICENSE.txt ]; then
+        vlicense LICENSE.txt
+    elif [ -f LICENSE ]; then
+        vlicense LICENSE
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

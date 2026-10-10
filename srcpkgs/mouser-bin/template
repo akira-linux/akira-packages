@@ -1,0 +1,30 @@
+# Template file for 'mouser-bin'
+pkgname=mouser-bin
+version=3.7.3
+revision=1
+archs="x86_64"
+wrksrc="Mouser"
+short_desc="Mouse automation tool"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://github.com/TomBadash/Mouser"
+distfiles="https://github.com/TomBadash/Mouser/releases/download/v${version}/Mouser-Linux.zip"
+checksum=45ec0536c5ed6d3486d332d80fd32fda7054a12b277f5d19c14a4193abe90d5d
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio"
+
+do_install() {
+    vmkdir opt/mouser
+    cp -Rp . "${DESTDIR}/opt/mouser"
+    vmkdir usr/bin
+    ln -sf /opt/mouser/Mouser "${DESTDIR}/usr/bin/mouser"
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall _internal/images/logo_icon.png 644 usr/share/icons/hicolor/256x256/apps mouser.png
+    vmkdir usr/share/pixmaps
+    ln -sf /usr/share/icons/hicolor/256x256/apps/mouser.png "${DESTDIR}/usr/share/pixmaps/mouser.png"
+    vinstall ${FILESDIR}/mouser.desktop 644 usr/share/applications
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}

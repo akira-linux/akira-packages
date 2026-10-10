@@ -1,0 +1,49 @@
+# Template file for 'ollama'
+pkgname=ollama
+version=0.40.2
+revision=1
+archs="x86_64"
+wrksrc="ollama-${version}"
+hostmakedepends="zstd libarchive"
+short_desc="Get up and running with large language models locally"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://ollama.com/"
+distfiles="https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst"
+checksum=726bee78706c281b0eeef00746efe51a044d71c592c3f0b195820707f31fdf04
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+skip_extraction=yes
+
+depends="glibc"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    zstd -d -c ${XBPS_SRCDISTDIR}/${pkgname}-${version}/ollama-linux-amd64.tar.zst | \
+        bsdtar -xf - -C "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/ollama
+    vcopy "*" opt/ollama
+    vcopy ".[!.]*" opt/ollama 2>/dev/null || true
+
+    find ${DESTDIR}/opt/ollama -xtype l -delete
+    find ${DESTDIR}/opt/ollama -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/ollama -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    ln -sf /opt/ollama/bin/ollama ${DESTDIR}/usr/bin/ollama
+
+    if [ -f LICENSE ]; then
+        vlicense LICENSE
+    elif [ -f LICENSE.md ]; then
+        vlicense LICENSE.md
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}
