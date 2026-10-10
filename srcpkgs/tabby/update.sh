@@ -40,6 +40,5 @@ sed -i "s/^version=.*/version=${LATEST}/" "${TEMPLATE}"
 sed -i "s/^checksum=.*/checksum=${CHECKSUM}/" "${TEMPLATE}"
 sed -i "s/^revision=.*/revision=1/" "${TEMPLATE}"
 
-
 echo "Done: ${LATEST} (${CHECKSUM:0:16}...)"
 echo "WARNING: Check if internal paths (icons, binary location) are still the same in the new .deb."

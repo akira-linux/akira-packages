@@ -19,7 +19,6 @@ d = json.load(sys.stdin)
 print(d['tag_name'].lstrip('v'))
 ")
 
-
 if [ -z "${LATEST}" ]; then
     echo "ERROR: Could not determine latest version" >&2
     exit 1
