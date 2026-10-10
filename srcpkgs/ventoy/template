@@ -22,6 +22,7 @@ do_extract() {
     bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/ventoy-${version}-linux.tar.gz \
         --strip-components 2 -C "${wrksrc}"
 }
+
 do_install() {
     vmkdir opt/ventoy
     vcopy "*" opt/ventoy

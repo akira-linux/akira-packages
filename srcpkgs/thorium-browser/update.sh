@@ -21,6 +21,7 @@ INFO=$(curl "${CURL_ARGS[@]}" \
     exit 1
 }
 
+
 TAG=$(echo "$INFO" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
