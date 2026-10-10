@@ -1,0 +1,29 @@
+# Template file for 'steam-bin'
+pkgname=steam-bin
+version=1.0.0.87
+revision=1
+archs="x86_64"
+depends="zenity xz curl dbus freetype gdk-pixbuf hicolor-icon-theme desktop-file-utils
+ liberation-fonts-ttf file tar bash coreutils lsof steam-udev-rules
+ libgcc-32bit libstdc++-32bit
+ libX11-32bit libXext-32bit libXrandr-32bit libXrender-32bit libXfixes-32bit
+ libXcomposite-32bit libXdamage-32bit libXinerama-32bit libXi-32bit libXcursor-32bit
+ libxcb-32bit libxshmfence-32bit
+ libglvnd-32bit libdrm-32bit vulkan-loader-32bit
+ nss-32bit nspr-32bit
+ alsa-lib-32bit libpulseaudio-32bit
+ SDL2-32bit gtk+-32bit pipewire-32bit libva-32bit libvdpau-32bit"
+short_desc="Valve's Steam digital distribution platform"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Valve-SSA"
+homepage="https://steampowered.com"
+distfiles="https://repo.steampowered.com/steam/pool/steam/s/steam/steam_${version}.tar.gz"
+checksum=649375d2f9377f8009aaf3e2ff09978041eb9114897d9c5a3886f1d82e27ba1f
+nostrip=yes
+
+do_install() {
+    make DESTDIR=${DESTDIR} install
+    rm -rf ${DESTDIR}/etc/apt ${DESTDIR}/usr/share/keyrings
+    ln -sf /bin/true ${DESTDIR}/usr/bin/steamdeps
+    vlicense steam_subscriber_agreement.txt LICENSE
+}
