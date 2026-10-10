@@ -1,0 +1,41 @@
+# Template file for 'protonmail-bridge'
+pkgname=protonmail-bridge
+version=3.27.1
+revision=1
+archs="x86_64"
+wrksrc="protonmail-bridge-${version}"
+hostmakedepends="libarchive"
+short_desc="Proton Mail Bridge - integrate Proton Mail with your email client"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://proton.me/mail/bridge"
+distfiles="https://github.com/ProtonMail/proton-bridge/releases/download/v${version}/protonmail-bridge_${version}-1_amd64.deb"
+checksum=d69eab5674335a41428bf77bde6a9f85667867e2083205625a710f6948e54d86
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3 xcb-util-cursor libfido2"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/protonmail-bridge_${version}-1_amd64.deb \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vcopy "usr/*" usr
+    vcopy "opt/*" opt 2>/dev/null || true
+
+    rm -f ${DESTDIR}/usr/share/applications/protonmail-bridge.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/protonmail-bridge.desktop 644 usr/share/applications
+
+    if [ -f "usr/share/doc/protonmail/bridge/LICENSE" ]; then
+        vlicense usr/share/doc/protonmail/bridge/LICENSE
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

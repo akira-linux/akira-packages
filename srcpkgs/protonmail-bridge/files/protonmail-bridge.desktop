@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Proton Mail Bridge
+Comment=Integrate Proton Mail with your email client
+Exec=protonmail-bridge %U
+Icon=protonmail-bridge
+Terminal=false
+Type=Application
+Categories=Network;Email;
+StartupNotify=true
