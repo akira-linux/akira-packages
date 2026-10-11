@@ -1,7 +1,7 @@
 # Template file for 'superfile'
 pkgname=superfile
 version=1.6.0
-revision=1
+revision=2
 archs="x86_64"
 wrksrc="superfile-${version}"
 hostmakedepends="libarchive"
@@ -14,9 +14,10 @@ checksum=d45b0e95072629a6aa7983a84eedca9cd7a98861e67ef91be1415496e3dda309
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
-skip_extraction=yes 
+skip_extraction=yes
 
 depends="glibc"
+triggers="gtk-icon-cache update-desktopdb"
 
 do_extract() {
     mkdir -p "${wrksrc}"
@@ -39,6 +40,14 @@ do_extract() {
 
 do_install() {
     vbin superfile
+
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/superfile.desktop 644 usr/share/applications
+
+    vmkdir usr/share/icons/hicolor/256x256/apps
+    vinstall ${FILESDIR}/superfile.png 644 usr/share/icons/hicolor/256x256/apps
+    vmkdir usr/share/pixmaps
+    vinstall ${FILESDIR}/superfile.png 644 usr/share/pixmaps
 
     if [ -f LICENSE ]; then
         vlicense LICENSE

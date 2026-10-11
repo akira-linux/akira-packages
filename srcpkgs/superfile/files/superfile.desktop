@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Superfile
+Comment=Stylish console file manager
+Exec=ghostty -e superfile
+Icon=superfile
+Terminal=false
+Categories=System;FileTools;FileManager;
+Keywords=folder;manager;explore;local;tui;
+StartupNotify=true
