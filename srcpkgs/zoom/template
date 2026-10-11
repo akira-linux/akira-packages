@@ -1,0 +1,52 @@
+# Template file for 'zoom'
+pkgname=zoom
+version=7.2.1
+_build=5760
+revision=1
+archs="x86_64"
+wrksrc="zoom-${version}"
+short_desc="Video Conferencing and Web Conferencing Service"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:Zoom"
+homepage="https://zoom.us/"
+distfiles="https://cdn.zoom.us/prod/${version}.${_build}/zoom_x86_64.pkg.tar.xz"
+checksum=36e8798f42f56ea8a73c772aac594a30f16a1aa4d151d61576b3dc82e7d2e50a
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/zoom_x86_64.pkg.tar.xz -C "${wrksrc}"
+}
+
+do_install() {
+    vcopy "usr/*" usr
+
+    vmkdir opt/zoom
+    for f in opt/zoom/*; do
+        if [ -f "$f" ]; then
+            vinstall "$f" 755 opt/zoom
+        elif [ -d "$f" ]; then
+            vcopy "$f" "opt/zoom/$(basename "$f")"
+        fi
+    done
+
+    chmod 755 ${DESTDIR}/opt/zoom/zoom 2>/dev/null || true
+    chmod 755 ${DESTDIR}/opt/zoom/ZoomLauncher 2>/dev/null || true
+
+    rm -f ${DESTDIR}/.INSTALL ${DESTDIR}/.PKGINFO
+
+    if [ -f usr/share/pixmaps/Zoom.png ]; then
+        mv ${DESTDIR}/usr/share/pixmaps/Zoom.png ${DESTDIR}/usr/share/pixmaps/zoom.png
+    fi
+    if [ -f usr/share/applications/Zoom.desktop ]; then
+        sed -i 's|^Icon=.*|Icon=zoom|' ${DESTDIR}/usr/share/applications/Zoom.desktop
+        sed -i 's|^Exec=.*|Exec=zoom %U|' ${DESTDIR}/usr/share/applications/Zoom.desktop
+        mv ${DESTDIR}/usr/share/applications/Zoom.desktop ${DESTDIR}/usr/share/applications/zoom.desktop
+    fi
+
+    vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+}

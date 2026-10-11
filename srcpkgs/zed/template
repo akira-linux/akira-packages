@@ -1,0 +1,66 @@
+# Template file for 'zed'
+pkgname=zed
+version=1.23.2
+revision=1
+archs="x86_64"
+wrksrc="zed.app"
+hostmakedepends="libarchive"
+short_desc="High-performance, multiplayer code editor"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT"
+homepage="https://zed.dev/"
+distfiles="https://github.com/zed-industries/zed/releases/download/v${version}/zed-linux-x86_64.tar.gz"
+checksum=cabddd5af2b26a19633ea39f5dde070e2aad204bb815bfa74cb65073ffd5ff39
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="libsecret libgbm eudev-libudev alsa-lib libcups libpulseaudio gtk+3"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf ${XBPS_SRCDISTDIR}/${pkgname}-${version}/zed-linux-x86_64.tar.gz \
+        --strip-components 1 -C "${wrksrc}"
+}
+
+do_install() {
+    vmkdir opt/zed
+    vcopy "*" opt/zed
+    vcopy ".[!.]*" opt/zed 2>/dev/null || true
+
+    find ${DESTDIR}/opt/zed -xtype l -delete
+    find ${DESTDIR}/opt/zed -name "* *" -exec rm -rf {} +
+    find ${DESTDIR}/opt/zed -type f -links +1 | while IFS= read -r f; do
+        cp --remove-destination "${f}" "${f}.tmp"
+        mv "${f}.tmp" "${f}"
+    done
+
+    vmkdir usr/bin
+    
+    ln -sf /opt/zed/bin/zed ${DESTDIR}/usr/bin/zed
+
+    for size in 512 1024; do
+        local icon_src="${DESTDIR}/opt/zed/share/icons/hicolor/${size}x${size}/apps/zed.png"
+        if [ -f "$icon_src" ]; then
+            vmkdir "usr/share/icons/hicolor/${size}x${size}/apps"
+            vinstall "$icon_src" 644 "usr/share/icons/hicolor/${size}x${size}/apps" zed.png
+        fi
+    done
+
+    if ! ls ${DESTDIR}/usr/share/icons/hicolor/*/apps/zed.png 1>/dev/null 2>&1; then
+        vmkdir usr/share/icons/hicolor/256x256/apps
+        vinstall ${FILESDIR}/zed.png 644 usr/share/icons/hicolor/256x256/apps zed.png
+        vmkdir usr/share/pixmaps
+        vinstall ${FILESDIR}/zed.png 644 usr/share/pixmaps zed.png
+    fi
+
+    rm -f ${DESTDIR}/usr/share/applications/dev.zed.Zed.desktop
+    vmkdir usr/share/applications
+    vinstall ${FILESDIR}/zed.desktop 644 usr/share/applications
+
+    if [ -f licenses.md ]; then
+        vlicense licenses.md
+    else
+        vinstall ${FILESDIR}/LICENSE 644 usr/share/licenses/${pkgname}
+    fi
+}

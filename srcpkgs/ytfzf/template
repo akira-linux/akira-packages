@@ -1,0 +1,24 @@
+# Template file for 'ytfzf'
+pkgname=ytfzf
+version=2.6.2
+revision=1
+build_style=gnu-configure
+hostmakedepends="make"
+depends="jq curl fzf mpv  yt-dlp"
+short_desc="A POSIX script that helps you find YouTube videos (without API)"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/pystardust/ytfzf"
+distfiles="https://github.com/pystardust/ytfzf/archive/refs/tags/v${version}.tar.gz"
+checksum=73280e4ef4f490400a42bf582b713803c523587b0b30269859eaa6f2693ec9b1
+
+do_configure() { :; }
+
+do_build() {
+    make PREFIX=/usr
+}
+
+do_install() {
+    make DESTDIR=${DESTDIR} PREFIX=/usr install
+    vlicense LICENSE
+}
