@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=PhotoCraft
+Comment=Open-source image editor (Photoshop alternative)
+Exec=photocraft
+Icon=ai.storyteller.photocraft
+Terminal=false
+Categories=Graphics;Photography;2DGraphics;RasterGraphics;
+MimeType=image/x-psd;image/png;image/jpeg;image/tiff;image/webp;image/x-xcf;
+StartupNotify=true

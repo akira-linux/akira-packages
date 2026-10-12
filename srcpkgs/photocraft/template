@@ -1,0 +1,52 @@
+# Template file for 'photocraft'
+pkgname=photocraft
+version=0.7.0
+revision=2
+archs="x86_64"
+wrksrc="photocraft-${version}"
+hostmakedepends="libarchive"
+short_desc="Open-source, clean-room reimplementation of Adobe Photoshop in pure Rust"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="MIT, Apache-2.0"
+homepage="https://github.com/storytold/photocraft"
+distfiles="https://github.com/storytold/photocraft/releases/download/v${version}/photocraft-${version}-linux-x86_64.deb"
+checksum=7dad0049352595cdabb867ccabe47854ce6a7d12e242424495d3e4a49ff0d0b4
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+
+depends="glibc libgcc libstdc++ vulkan-loader libxkbcommon wayland
+ libX11 libXcursor libXi libXrandr libxcb
+ fontconfig freetype libsecret libgbm"
+
+do_extract() {
+    mkdir -p "${wrksrc}"
+    bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/photocraft-${version}-linux-x86_64.deb" \
+        -C "${wrksrc}" --include='data.tar*'
+    bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+    rm -f "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+    vbin usr/bin/photocraft
+
+    vmkdir usr/share/applications
+    vinstall "${FILESDIR}/photocraft.desktop" 644 usr/share/applications
+
+    if [ -d usr/share/icons ]; then
+        vmkdir usr/share/icons
+        vcopy usr/share/icons/* usr/share/icons/
+    fi
+
+    if [ -d usr/share/mime ]; then
+        vmkdir usr/share/mime
+        vcopy usr/share/mime/* usr/share/mime/
+    fi
+    if [ -d usr/share/metainfo ]; then
+        vmkdir usr/share/metainfo
+        vcopy usr/share/metainfo/* usr/share/metainfo/
+    fi
+    
+    vlicense usr/share/doc/photocraft/LICENSE-MIT
+    vlicense usr/share/doc/photocraft/LICENSE-APACHE
+}
