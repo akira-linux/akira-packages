@@ -1,7 +1,7 @@
 # Template file for 'chatgpt-desktop'
 pkgname=chatgpt-desktop
 version=26.1007.21434
-revision=1
+revision=2
 archs="x86_64"
 wrksrc="chatgpt-${version}"
 hostmakedepends="libarchive"
@@ -14,6 +14,7 @@ checksum=276b5341c3d74b261d3ad52106f7fa7edde06841e4767fe2a40cb54099b1f3ed
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
+triggers="gtk-icon-cache update-desktopdb"
 
 depends="alsa-lib at-spi2-core cairo dbus expat gdk-pixbuf glib glibc gtk+3
  libcups libdrm libgbm libgcc libglvnd libnotify libpulseaudio libsecret
@@ -44,6 +45,11 @@ do_install() {
     if [ -d usr/share/icons ]; then
         vmkdir usr/share/icons
         vcopy usr/share/icons/* usr/share/icons/
+    fi
+
+    if [ -d usr/share/pixmaps ]; then
+        vmkdir usr/share/pixmaps
+        vcopy usr/share/pixmaps/* usr/share/pixmaps/
     fi
 
     for d in usr/share/mime usr/share/metainfo; do
