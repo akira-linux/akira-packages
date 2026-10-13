@@ -1,0 +1,65 @@
+# Template file for 'deepseek-harness'
+pkgname=deepseek-harness
+version=0.2.1.alpha.2
+revision=1
+archs="x86_64"
+wrksrc="deepseek-harness-dsh-v0.2.1-alpha.2"
+hostmakedepends="nodejs nodejs-devel pnpm python3 gcc make pkg-config patchelf
+ tar libarchive git fontconfig dejavu-fonts-ttf"
+makedepends="gtk+3-devel nss-devel libXScrnSaver-devel libXtst-devel
+ libsecret-devel libgbm-devel alsa-lib-devel cups-devel
+ pulseaudio-devel libnotify-devel"
+depends="gtk+3 nss libXScrnSaver libXtst libsecret libgbm
+ alsa-lib libcups libpulseaudio libnotify gnome-keyring"
+short_desc="Official DeepSeek Harness desktop application (Electron shell)"
+maintainer="Akira Linux <dev@akiralinux.org>"
+license="MIT"
+homepage="https://github.com/deepseek-ai/deepseek-harness"
+distfiles="https://github.com/deepseek-ai/deepseek-harness/archive/refs/tags/dsh-v0.2.1-alpha.2.tar.gz"
+checksum=f54cf0530ffba0ffb6bd00d08d5459918a1518cb77b22aa2b166a5dba234428a
+python_version=3.12
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+nopie=yes
+triggers="gtk-icon-cache update-desktopdb"
+
+do_build() {
+	export LEFTHOOK=0
+	export NODE_OPTIONS="--max-old-space-size=4096"
+	patch -p1 --forward < "${FILESDIR}/linux-desktop.patch" || true
+	cp "${FILESDIR}/deepseek-harness-linux.env" apps/desktop/.env.linux
+
+	git init -q
+	git config user.email "build@akiralinux.org"
+	git config user.name "Akira Build"
+	git commit -q --allow-empty -m "akira build"
+
+	CACHE_ROOT="$PWD/apps/desktop/.desktop-build/downloads"
+	HASH=$(printf '%s' 'https://github.com/electron/electron/releases/download/v44.7.0' | sha256sum | cut -d' ' -f1)
+	mkdir -p "$CACHE_ROOT/$HASH"
+	cp "${XBPS_SRCDISTDIR}/${pkgname}-${version}/electron-v44.7.0-linux-x64.zip" "$CACHE_ROOT/$HASH/"
+	cp "${XBPS_SRCDISTDIR}/${pkgname}-${version}/SHASUMS256.txt" "$CACHE_ROOT/$HASH/"
+
+	pnpm install --frozen-lockfile
+	pnpm run package:desktop:linux:x64:dir
+}
+
+do_install() {
+	vmkdir opt/deepseek-harness
+	vcopy "apps/desktop/.desktop-build/targets/linux-x64/artifacts/linux-unpacked"/* \
+		opt/deepseek-harness/
+
+	vmkdir usr/bin
+	ln -sf /opt/deepseek-harness/deepseek-harness ${DESTDIR}/usr/bin/deepseek-harness
+
+	vmkdir usr/share/applications
+	vinstall "${FILESDIR}/deepseek-harness.desktop" 644 \
+		usr/share/applications deepseek-harness.desktop
+
+	if [ -f "apps/desktop/.desktop-build/targets/linux-x64/artifacts/linux-unpacked/resources/icon.png" ]; then
+		vmkdir usr/share/icons/hicolor/512x512/apps
+		vinstall "apps/desktop/.desktop-build/targets/linux-x64/artifacts/linux-unpacked/resources/icon.png" 644 \
+			usr/share/icons/hicolor/512x512/apps deepseek-harness.png
+	fi
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=DeepSeek Harness
+Comment=Official DeepSeek Harness desktop client
+Exec=/usr/bin/deepseek-harness %U
+Icon=deepseek-harness
+Terminal=false
+Type=Application
+Categories=Development;Utility;
+StartupNotify=true
+MimeType=x-scheme-handler/dsh
