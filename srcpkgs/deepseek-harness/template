@@ -15,7 +15,7 @@ short_desc="Official DeepSeek Harness desktop application (Electron shell)"
 maintainer="Akira Linux <dev@akiralinux.org>"
 license="MIT"
 homepage="https://github.com/deepseek-ai/deepseek-harness"
- distfiles="https://github.com/deepseek-ai/deepseek-harness/archive/refs/tags/dsh-v0.2.1-alpha.2.tar.gz
+distfiles="https://github.com/deepseek-ai/deepseek-harness/archive/refs/tags/dsh-v0.2.1-alpha.2.tar.gz
  https://github.com/electron/electron/releases/download/v44.7.0/electron-v44.7.0-linux-x64.zip
  https://github.com/electron/electron/releases/download/v44.7.0/SHASUMS256.txt"
 checksum="f54cf0530ffba0ffb6bd00d08d5459918a1518cb77b22aa2b166a5dba234428a
@@ -27,6 +27,13 @@ noshlibs=yes
 noverifyrdeps=yes
 nopie=yes
 triggers="gtk-icon-cache update-desktopdb"
+
+do_extract() {
+	bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/dsh-v0.2.1-alpha.2.tar.gz" -C .
+	mv deepseek-harness-dsh-v0.2.1-alpha.2/* .
+	mv deepseek-harness-dsh-v0.2.1-alpha.2/.[!.]* . 2>/dev/null || true
+	rmdir deepseek-harness-dsh-v0.2.1-alpha.2
+}
 
 do_build() {
 	export LEFTHOOK=0
