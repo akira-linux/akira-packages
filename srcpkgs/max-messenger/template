@@ -1,0 +1,63 @@
+# Template file for 'max-messenger'
+pkgname=max-messenger
+version=26.35.2
+revision=1
+archs="x86_64"
+wrksrc="max-${version}"
+hostmakedepends="libarchive"
+short_desc="MAX messenger for Linux"
+maintainer="cybarchitect <cybarchitect@gmail.com>"
+license="custom:MAX"
+homepage="https://max.ru/"
+distfiles="https://download.max.ru/linux/deb/pool/main/m/max/MAX-${version}.80824.deb"
+checksum=f5162d4b172fee0bd71b79313bca91946df1c851776423812c1d3c2a87228d97
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+nopie=yes
+triggers="gtk-icon-cache update-desktopdb"
+
+depends="gtk+3 nss libXScrnSaver libXtst libsecret libgbm
+ alsa-lib libcups libpulseaudio libnotify"
+
+do_extract() {
+	mkdir -p "${wrksrc}"
+	bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/MAX-${version}.80824.deb" \
+		-C "${wrksrc}" --include='data.tar*'
+	bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
+	rm -f "${wrksrc}"/data.tar.*
+}
+
+do_install() {
+	vmkdir opt/max
+	vcopy usr/share/max/* opt/max/
+
+	vmkdir usr/bin
+	ln -sf /opt/max/bin/max ${DESTDIR}/usr/bin/max
+
+	if [ -d usr/share/applications ]; then
+		vmkdir usr/share/applications
+		vcopy usr/share/applications/* usr/share/applications/
+		vsed -i 's|^Exec=.*|Exec=/opt/max/bin/max %U|' \
+			"${DESTDIR}/usr/share/applications/"*.desktop
+	fi
+
+	if [ -d usr/share/icons ]; then
+		vmkdir usr/share/icons
+		vcopy usr/share/icons/* usr/share/icons/
+	fi
+
+	if [ -d usr/share/pixmaps ]; then
+		vmkdir usr/share/pixmaps
+		vcopy usr/share/pixmaps/* usr/share/pixmaps/
+	fi
+
+	if [ -d usr/share/metainfo ]; then
+		vmkdir usr/share/metainfo
+		vcopy usr/share/metainfo/* usr/share/metainfo/
+	fi
+
+	if [ -f usr/share/doc/max/copyright ]; then
+		vlicense usr/share/doc/max/copyright
+	fi
+}
