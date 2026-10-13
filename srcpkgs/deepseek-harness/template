@@ -15,8 +15,12 @@ short_desc="Official DeepSeek Harness desktop application (Electron shell)"
 maintainer="Akira Linux <dev@akiralinux.org>"
 license="MIT"
 homepage="https://github.com/deepseek-ai/deepseek-harness"
-distfiles="https://github.com/deepseek-ai/deepseek-harness/archive/refs/tags/dsh-v0.2.1-alpha.2.tar.gz"
-checksum=f54cf0530ffba0ffb6bd00d08d5459918a1518cb77b22aa2b166a5dba234428a
+ distfiles="https://github.com/deepseek-ai/deepseek-harness/archive/refs/tags/dsh-v0.2.1-alpha.2.tar.gz
+ https://github.com/electron/electron/releases/download/v44.7.0/electron-v44.7.0-linux-x64.zip
+ https://github.com/electron/electron/releases/download/v44.7.0/SHASUMS256.txt"
+checksum="f54cf0530ffba0ffb6bd00d08d5459918a1518cb77b22aa2b166a5dba234428a
+ 3ae7d5bdad61c664486c6ab61361dd084d064c8c08af8d13a687096e18ce555a
+ ae1159fdb6d008ca267c267edb6dd82ded692529c9a930386452511aaaddb7b1"
 python_version=3.12
 nostrip=yes
 noshlibs=yes
