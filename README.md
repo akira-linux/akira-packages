@@ -44,7 +44,7 @@ If you prefer to compile packages locally a build machine:
     ```
 3. **Install the Locally Generated Package:**
     ```bash
-    xbps-install --repository hostdir/binpkgs <package_name>
+    sudo xbps-install --repository hostdir/binpkgs/main <package_name>
     ```
 
 ---
