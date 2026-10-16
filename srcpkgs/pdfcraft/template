@@ -1,0 +1,40 @@
+# Template file for 'pdfcraft'
+pkgname=pdfcraft
+version=0.8.0
+revision=3
+archs="x86_64"
+wrksrc="pdfcraft-${version}"
+hostmakedepends="cargo rust pkg-config"
+makedepends="libxkbcommon-devel fontconfig-devel freetype-devel
+ wayland-devel wayland-protocols"
+depends="glibc libgcc hicolor-icon-theme
+ libxkbcommon fontconfig freetype
+ wayland
+ gnome-keyring xdg-desktop-portal xdg-desktop-portal-gtk"
+
+short_desc="Open-source PDF workbench (clean-room Acrobat reimplementation)"
+maintainer="Akira Linux <dev@akiralinux.org>"
+license="MIT, Apache-2.0"
+homepage="https://getartcraft.com/apps/pdfcraft"
+distfiles="https://github.com/storytold/pdfcraft/archive/refs/tags/v${version}.tar.gz"
+checksum=64c32b6cdab2d6334d16ac8c65b3425718cb88594e6347ebe25efc1aaf5e0bae
+
+do_build() {
+    cargo build --release --locked
+}
+
+do_install() {
+	for bin in pdfcraft pdfcraft-cli; do
+		if [ -f "target/release/$bin" ]; then
+			vbin "target/release/$bin"
+		fi
+	done
+
+	if [ -d "assets/app-icon/hicolor" ]; then
+		vmkdir usr/share/icons
+		vcopy assets/app-icon/hicolor usr/share/icons/
+	fi
+
+	vmkdir usr/share/applications
+	vinstall "${FILESDIR}/pdfcraft.desktop" 644 usr/share/applications
+}
