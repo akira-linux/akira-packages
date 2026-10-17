@@ -1,8 +1,8 @@
 # Template file for 'librepods'
 pkgname=librepods
-version=1.0.2
+version=1.0.4
 revision=1
-_tag=1.0.2
+_tag=1.0.4
 build_style=cmake
 build_wrksrc="linux"
 configure_args="-DCMAKE_BUILD_TYPE=Release"
@@ -15,7 +15,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/kavishdevar/librepods"
 distfiles="https://github.com/kavishdevar/librepods/archive/refs/tags/v${_tag}.tar.gz>librepods-${_tag}.tar.gz"
-checksum=984c184fa753069d70fb5c26b1b1153deea9b44c72ad90a4f6d4f32df97d403d
+checksum=4adb9084dd7d599191eac6e966e789f1bf39fe46fa937dba77cc671ee2084b1a
 
 do_install() {
 	vbin build/librepods
