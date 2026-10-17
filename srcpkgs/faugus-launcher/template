@@ -1,0 +1,29 @@
+# Template file for 'faugus-launcher'
+pkgname=faugus-launcher
+version=2.5.0
+revision=1
+archs="x86_64"
+wrksrc="faugus-launcher-${version}"
+
+hostmakedepends="meson ninja pkg-config gettext"
+makedepends="gtk4-devel libadwaita-devel libmanette-devel python3-gobject-devel"
+depends="gtk4 libadwaita libmanette
+ python3-gobject python3-requests python3-Pillow
+ python3-vdf python3-psutil python3-icoextract
+ xdg-desktop-portal xdg-desktop-portal-gtk"
+
+short_desc="Simple and lightweight app for running Windows games using UMU-Launcher"
+maintainer="Akira Linux <dev@akiralinux.org>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/Faugus/faugus-launcher"
+distfiles="https://github.com/Faugus/faugus-launcher/archive/refs/tags/${version}.tar.gz"
+checksum=fda35bae35b8ad3ecbd254a709a3bea9b7ce56e0b4c0bf691a1c9470583f4c9c
+
+do_build() {
+    meson setup builddir --prefix=/usr --buildtype=release
+    ninja -C builddir
+}
+
+do_install() {
+    DESTDIR="${DESTDIR}" ninja -C builddir install
+}
