@@ -1,0 +1,25 @@
+# Template file for 'pi'
+pkgname=pi
+version=1.3.0
+revision=1
+archs="x86_64"
+wrksrc="pi"
+depends="fd ripgrep tmux"
+short_desc="AI coding agent for the terminal — minimal, extensible, tool-optimized"
+maintainer="Akira Linux <dev@akiralinux.org>"
+license="MIT"
+homepage="https://github.com/earendil-works/pi"
+distfiles="https://github.com/earendil-works/pi/releases/download/v${version}/pi-linux-x64.tar.gz"
+checksum=24f5be328b66d4da36876296989501974f43ab8434fbb57c35c523a3ea505ded
+
+nostrip=yes
+noshlibs=yes
+noverifyrdeps=yes
+nopie=yes
+
+do_install() {
+	vmkdir opt/pi
+	vcopy ./* opt/pi/
+	vmkdir usr/bin
+	ln -sf /opt/pi/pi ${DESTDIR}/usr/bin/pi
+}
