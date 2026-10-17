@@ -49,19 +49,6 @@ If you prefer to compile packages locally a build machine:
 
 ---
 
-## 📂 Directory Hierarchy
-
-- `common/` — Shared build profiles, cross-compilation architectures, and core components.
-- `etc/` — Local configuration overrides (e.g., `etc/conf`).
-- `srcpkgs/` — The core directory containing standalone package build templates.
-- `hostdir/` — Local directory for storage, cache compilation (`ccache`), and output binary packages.
-
----
-
-## 🌐 Community & Connections
-
-- 💬 **Telegram Chat** — Join us for development, support, and contribution discussions.
-- 📢 **@akiralinux** — Official updates, distribution news, and repository announcements.
 
 ---
 
