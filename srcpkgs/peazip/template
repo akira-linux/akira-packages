@@ -1,6 +1,6 @@
 # Template file for 'peazip'
 pkgname=peazip
-version=11.3.0
+version=11.4.0
 revision=1
 archs="x86_64"
 wrksrc="peazip_portable-${version}.LINUX.Qt6.x86_64"
@@ -10,7 +10,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="LGPL-3.0-or-later"
 homepage="https://peazip.github.io/"
 distfiles="https://github.com/peazip/PeaZip/releases/download/${version}/peazip_portable-${version}.LINUX.Qt6.x86_64.tar.gz"
-checksum=7743d660c3c2525127d61c5230b05009ecd5626e87bb1a0dd786ddd90bfdb7c1
+checksum=cc414efe5ebb157c299d0fb2f01b527e6675f7220fc25e014526671b0c25df13
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
