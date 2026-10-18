@@ -1,7 +1,7 @@
 # Template file for 'pdfcraft'
 pkgname=pdfcraft
-version=0.8.0
-revision=3
+version=0.9.0
+revision=1
 archs="x86_64"
 wrksrc="pdfcraft-${version}"
 hostmakedepends="cargo rust pkg-config"
@@ -17,7 +17,7 @@ maintainer="Akira Linux <dev@akiralinux.org>"
 license="MIT, Apache-2.0"
 homepage="https://getartcraft.com/apps/pdfcraft"
 distfiles="https://github.com/storytold/pdfcraft/archive/refs/tags/v${version}.tar.gz"
-checksum=64c32b6cdab2d6334d16ac8c65b3425718cb88594e6347ebe25efc1aaf5e0bae
+checksum=38476e8448e0941d8e243ee7413ad410bde54085140a24733d211ff1b6117b2e
 
 do_build() {
     cargo build --release --locked
