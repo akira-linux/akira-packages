@@ -1,6 +1,6 @@
 # Template file for 'pdfcraft'
 pkgname=pdfcraft
-version=0.9.0
+version=0.10.1
 revision=1
 archs="x86_64"
 wrksrc="pdfcraft-${version}"
@@ -17,7 +17,7 @@ maintainer="Akira Linux <dev@akiralinux.org>"
 license="MIT, Apache-2.0"
 homepage="https://getartcraft.com/apps/pdfcraft"
 distfiles="https://github.com/storytold/pdfcraft/archive/refs/tags/v${version}.tar.gz"
-checksum=38476e8448e0941d8e243ee7413ad410bde54085140a24733d211ff1b6117b2e
+checksum=1961a2bfbae96c2adb7edbb2438c5998d6df7a67bdcde42ab98e7f4a03097caf
 
 do_build() {
     cargo build --release --locked
