@@ -22,7 +22,7 @@ depends="gtk+3 nss libXScrnSaver libXtst libsecret libgbm
 
 do_extract() {
 	mkdir -p "${wrksrc}"
-	bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/MAX-${version}.80824.deb" \
+	bsdtar -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/MAX-${version}."*.deb \
 		-C "${wrksrc}" --include='data.tar*'
 	bsdtar -xf "${wrksrc}"/data.tar.* -C "${wrksrc}"
 	rm -f "${wrksrc}"/data.tar.*
