@@ -1,6 +1,6 @@
 # Template file for 'yandex-music'
 pkgname=yandex-music
-version=5.123.4
+version=5.124.1
 revision=1
 hostmakedepends="tar xz nodejs"
 makedepends="asar"
@@ -11,7 +11,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:yandex"
 homepage="https://music.yandex.ru/download/"
 distfiles="https://desktop.app.music.yandex.net/stable/Yandex_Music_amd64_${version}.deb"
-checksum="f2923f414e432aed371e37f0a97d27c5087251587b10fba1132a04f973782a36"
+checksum="2fb6f1e376246115da1814807909f9bcf10108e2f3ca7dd8b74dc76fbd6441a0"
 
 do_extract() {
 	mkdir -p ${DESTDIR}
