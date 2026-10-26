@@ -1,6 +1,6 @@
 # Template file for 'lolka'
 pkgname=lolka
-version=1.0.100
+version=1.0.124
 revision=1
 archs="x86_64"
 wrksrc="lolka-${version}"
@@ -9,7 +9,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:Proprietary"
 homepage="https://lolka.app"
 distfiles="https://storage.yandexcloud.net/lolka-electron/releases/Lolka_${version}_amd64.deb"
-checksum=15c25d3c45314d859db3753764d1b0e6d91d2528c410ef070f502483bdfc9b2c
+checksum=468f9508ae33b81d2633d2ecc1d9c002de565fffedc6e059a5f24168038d49cd
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
