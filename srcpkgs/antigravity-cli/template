@@ -1,6 +1,6 @@
 # Template file for 'antigravity-cli'
 pkgname=antigravity-cli
-version=1.4.4.4783783166214144
+version=1.4.7.5900205422411776
 revision=1
 archs="x86_64"
 wrksrc="antigravity-cli-${version}"
