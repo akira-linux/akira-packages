@@ -1,6 +1,6 @@
 # Template file for 'faugus-launcher'
 pkgname=faugus-launcher
-version=2.5.1
+version=2.5.4
 revision=1
 archs="x86_64"
 wrksrc="faugus-launcher-${version}"
@@ -17,7 +17,7 @@ maintainer="Akira Linux <dev@akiralinux.org>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/Faugus/faugus-launcher"
 distfiles="https://github.com/Faugus/faugus-launcher/archive/refs/tags/${version}.tar.gz"
-checksum=0d0ae82febf6b3924b975f79f277887edc9364de67be89831514400cd94b6db6
+checksum=479f2d46a632a9b89c37de1b835a4a30e6f1fca01b54a808f6ae6fb2f9aaf508
 
 do_build() {
     meson setup builddir --prefix=/usr --buildtype=release
