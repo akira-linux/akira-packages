@@ -1,7 +1,7 @@
 # Template file for 'zoom'
 pkgname=zoom
-version=7.2.1
-_build=5760
+version=7.2.5
+_build=6661
 revision=1
 archs="x86_64"
 wrksrc="zoom-${version}"
@@ -10,7 +10,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:Zoom"
 homepage="https://zoom.us/"
 distfiles="https://cdn.zoom.us/prod/${version}.${_build}/zoom_x86_64.pkg.tar.xz"
-checksum=36e8798f42f56ea8a73c772aac594a30f16a1aa4d151d61576b3dc82e7d2e50a
+checksum=9da37f66f98bb765723c2cf33e27f1ec51aa861f706a54ceccb78fef3414825c
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes

@@ -1,6 +1,6 @@
 # Template file for 'exodus-bin'
 pkgname=exodus
-version=26.10.7
+version=26.10.21
 revision=1
 archs="x86_64"
 wrksrc="Exodus-linux-x64"
@@ -9,7 +9,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:Exodus"
 homepage="https://exodus.com"
 distfiles="https://downloads.exodus.com/releases/exodus-linux-x64-${version}.zip"
-checksum=abea449ac3e2e16f44f3c76e358953be49bd85b9279890d08cb5b38bedef3f5d
+checksum=307ded0f60ae20acd3615ce74a7e52ecf2b44fb4c27d75a44ecc72252ca80a4e
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
