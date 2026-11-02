@@ -1,6 +1,6 @@
 # Template file for 'albion-online-launcher'
 pkgname=albion-online-launcher
-version=1.0.34.619
+version=1.0.34.624
 revision=1
 archs="x86_64"
 wrksrc="albion-online-launcher-${version}"
@@ -9,8 +9,8 @@ short_desc="Official launcher client for Albion Online MMORPG"
 maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:Proprietary"
 homepage="https://albiononline.com/"
-distfiles="https://live.albiononline.com/autoupdate/launcher-linux-setup-1.0.34.619"
-checksum=4bfbc3aca267dbcbf9c1e2c91d60aac54e7fa334830859844dd6ed9cd943496d
+distfiles="https://live.albiononline.com/autoupdate/launcher-linux-setup-1.0.34.624"
+checksum=b73897f2667e5c20ed592e636f990284fd0a649e30d95542b7d5e4348b1d1227
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
