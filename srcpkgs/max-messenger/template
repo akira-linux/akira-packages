@@ -1,6 +1,6 @@
 # Template file for 'max-messenger'
 pkgname=max-messenger
-version=26.37.0
+version=26.38.0
 revision=1
 archs="x86_64"
 wrksrc="max-${version}"
@@ -9,8 +9,8 @@ short_desc="MAX messenger for Linux"
 maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="custom:MAX"
 homepage="https://max.ru/"
-distfiles="https://download.max.ru/linux/deb/pool/main/m/max/MAX-26.37.0.81740.deb"
-checksum=99bde742069dcdcaef484d0beda059cdfa5a298f468925b06d9a8d7a0a777ca8
+distfiles="https://download.max.ru/linux/deb/pool/main/m/max/MAX-26.38.0.82021.deb"
+checksum=a8524b9c4145425a62d9aa3ac58f3e3305b1a0be1c7b2bc58d84726c10ab4715
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
