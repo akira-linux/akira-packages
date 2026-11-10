@@ -1,11 +1,11 @@
 # Template file for 'cursor'
 pkgname=cursor
-version=3.28.7
+version=3.29.15
 revision=1
 archs="x86_64"
 wrksrc="cursor-${version}"
-distfiles="https://downloads.cursor.com/production/25b52e7d03ebf2d5608914158e119f7992432a34/linux/x64/deb/amd64/deb/cursor_3.28.7_amd64.deb>cursor-3.28.7-amd64.deb"
-checksum=4610c4915aff5ddd2b637e2ff3f48490e258239f4bfa34869b9ab2f0be5f38d0
+distfiles="https://downloads.cursor.com/production/86776fcb52ca505783155631089b65d646f9b03f/linux/x64/deb/amd64/deb/cursor_3.29.15_amd64.deb>cursor-3.29.15-amd64.deb"
+checksum=bc2d010514ce079bc55acff0332757e311e18b0da48dc24dc364bc8f695c11e5
 homepage="https://www.cursor.com"
 license="custom:Cursor-EULA"
 short_desc="First AI code editor based on VSCode"

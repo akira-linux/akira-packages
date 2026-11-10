@@ -1,6 +1,6 @@
 # Template file for 'photocraft'
 pkgname=photocraft
-version=0.20.1
+version=0.22.0
 revision=1
 archs="x86_64"
 wrksrc="photocraft-${version}"
@@ -10,7 +10,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="MIT, Apache-2.0"
 homepage="https://github.com/storytold/photocraft"
 distfiles="https://github.com/storytold/photocraft/releases/download/v${version}/photocraft-${version}-linux-x86_64.deb"
-checksum=802b3a1d2da9be06436bb615bf0a53b26b79981510206e7cdf42a94a6e9f4f2c
+checksum=d9c272fb0f2667eb1bd35e601a5541d10f4dae93e3a9b70165d9b3dd43c280bf
 nostrip=yes
 noshlibs=yes
 noverifyrdeps=yes
