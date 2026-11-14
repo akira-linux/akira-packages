@@ -1,6 +1,6 @@
 # Template file for 'asar'
 pkgname=asar
-version=4.3.1
+version=4.3.2
 revision=1
 hostmakedepends="nodejs"
 depends="nodejs"
@@ -9,7 +9,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="MIT"
 homepage="https://github.com/electron/asar"
 distfiles="https://github.com/electron/asar/archive/refs/tags/v${version}.tar.gz"
-checksum="4cb0294126bb12ea91276e7f35fb9be980759b41db0a7c8f70b1a56664dc00d1"
+checksum="5fec6c559f402bfb305ecf44c2d352444edc15dab3e72ff5729a723dd1d3c068"
 
 
 do_build() {
