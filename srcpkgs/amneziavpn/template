@@ -1,6 +1,6 @@
 # Template file for 'amneziavpn'
 pkgname=amneziavpn
-version=5.1.0.6
+version=5.1.1.10
 revision=1
 archs="x86_64"
 wrksrc="${pkgname}-${version}"
@@ -10,7 +10,7 @@ maintainer="cybarchitect <cybarchitect@gmail.com>"
 license="GPL-3.0-only"
 homepage="https://github.com/amnezia-vpn/amnezia-client"
 distfiles="https://github.com/amnezia-vpn/amnezia-client/releases/download/${version}/AmneziaVPN_${version}_linux_x64.run"
-checksum=f60a4f373332dac8465bd9b8e4f233ee3aa32131fe124d31ca70bc499c73496f
+checksum=37046d9eb3188d69d18b038e12a38b1d32dfe090a2b5721dc702f0e26cd97026
 nopie=yes
 noverifyrdeps=yes
 disable_shlib_provides=yes
