@@ -2,6 +2,8 @@
 # Auto-updater for bitwarden-bin
 set -euo pipefail
 
+LICENSE_PREFIX="bit"
+
 TEMPLATE="$(dirname "$0")/template"
 CURRENT=$(grep '^version=' "${TEMPLATE}" | cut -d= -f2)
 
@@ -38,18 +40,20 @@ echo "bitwarden-bin: ${CURRENT} → ${LATEST}"
 DOWNLOAD_URL=$(echo "${INFO}" | python3 -c "
 import sys, json
 releases = json.load(sys.stdin)
+prefix = '${LICENSE_PREFIX}'
 for r in releases:
     tag = r.get('tag_name', '')
     if tag.startswith('desktop-v') and not r.get('prerelease'):
         for a in r.get('assets', []):
-            if a['name'].endswith('amd64.deb'):
+            # Ищем файл, который начинается с выбранного префикса и заканчивается на amd64.deb
+            if a['name'].startswith(prefix + '-') and a['name'].endswith('amd64.deb'):
                 print(a['browser_download_url'])
                 break
         break
 ")
 
 if [ -z "${DOWNLOAD_URL}" ]; then
-    echo "ERROR: Could not find amd64.deb in assets" >&2
+    echo "ERROR: Could not find ${LICENSE_PREFIX}-*amd64.deb in assets" >&2
     exit 1
 fi
 
