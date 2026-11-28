@@ -1,14 +1,14 @@
 # Template file for 'lm-studio'
 pkgname=lm-studio
-version=0.4.28.2
+version=0.4.29.2
 revision=1
 archs="x86_64"
-_tag=0.4.28-2
+_tag=0.4.29-2
 python_version=3
 wrksrc="lmstudio-${version}"
 hostmakedepends="fuse glib"
-distfiles="https://installers.lmstudio.ai/linux/x64/0.4.28-2/LM-Studio-0.4.28-2-x64.AppImage"
-checksum="a3e6cf8233697be0a8ad6871197b424242af3c5a346671aeed59959ed7eebf11"
+distfiles="https://installers.lmstudio.ai/linux/x64/0.4.29-2/LM-Studio-0.4.29-2-x64.AppImage"
+checksum="55c841359589e58d75e5e1a210b9006053db4c5cef8a721934b24ecc674f5fe2"
 homepage="https://lmstudio.ai/"
 license="custom:EULA"
 short_desc="LM Studio - A desktop app for exploring and running large language models locally (AppImage repack)"
